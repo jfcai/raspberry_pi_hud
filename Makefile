@@ -13,10 +13,10 @@ LIB += -liconv
 TARGET = ./hud
 
 DEFS = -D DEBUG
-
+DEFS += -D HUD
 all:$(OBJS)
 	$(CC) $(OBJS) $(DEFS) $(LIB) -o $(TARGET)
 $(OBJS):%.o:%.c
 	$(CC) -c $< $(DEFS) -o $@ $(INC)
 clean:
-	rm $(OBJS)
+	rm $(OBJS) $(TARGET)

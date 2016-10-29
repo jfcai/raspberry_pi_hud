@@ -18,128 +18,39 @@
 #include <bcm2835.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <time.h>
 #include "oled.h"
 
 
 void OLED_TEST(void)
 {
-    Set_Column_Address(Shift+0,Shift+0+5); // 设置列坐标，shift为列偏移量由1322决定。3为16/4-1
-    Set_Row_Address(0,23); 
-    Set_Write_RAM();
-
-    //0x20,0x50,0x88,0x88,0xF8,0x88,0x88,0x00
-    //Con_4_byte(0x20);
-    //Con_4_byte(0x50);
-    //Con_4_byte(0x88);
-    //Con_4_byte(0x88);
-    //Con_4_byte(0xF8);
-    //Con_4_byte(0x88);
-    //Con_4_byte(0x88);
-    //Con_4_byte(0x00);
-   // OLED_WR_Byte(0xff,OLED_DATA);
-   // OLED_WR_Byte(0x00,OLED_DATA);
-
-    unsigned char GB_24[] =        // 数据表
-{
-      0x00,0x00,0x00,0x00,0xF8,0x00,0x7E,0xFF,
-      0xFE,0x7E,0xDF,0xFE,0x66,0xD8,0x0C,0x66,
-      0xD8,0x0C,0x66,0xDB,0xEC,0x66,0xF3,0xEC,
-      0x66,0xF3,0x6C,0x66,0xF3,0x6C,0x66,0xF3,
-      0x6C,0x66,0xDB,0x6C,0x66,0xDB,0x6C,0x66,
-      0xDB,0x6C,0x7E,0xDB,0xEC,0x7E,0xDB,0xEC,
-      0x7E,0xFB,0xEC,0x66,0xFB,0x6C,0x60,0xF3,
-      0x0C,0x60,0xC0,0x0C,0x00,0xC0,0x0C,0x00,
-      0xC0,0x7C,0x00,0xC0,0x3C,0x00,0x00,0x00
-};
-
-    int i;
-    for(i=0;i<72;i++)
-    {
-        Con_4_byte(GB_24[i]);
-    }
-    // for (i=23;i>0;i--)
-    // {
-    //     Con_4_byte(GB_24[i*3+0]);
-    //     Con_4_byte(GB_24[i*3+1]);
-    //     Con_4_byte(GB_24[i*3+2]);
-    // }
-/*
-     HZ24_24(0,30,"夫");
-     HZ24_24(24,30,"唯");
-     HZ24_24(48,30,"不");
-     HZ24_24(72,30,"争");
-     HZ24_24(96,30,"则");
-     HZ24_24(120,30,"天");
-     HZ24_24(144,30,"下");
-     HZ24_24(168,30,"莫");
-     HZ24_24(192,30,"能");
-     HZ24_24(216,30,"与");
-
-
-     HZ24_24(0,  0,"之");
-     HZ24_24(24, 0,"争");
-     HZ24_24(48, 0,"这");
-     HZ24_24(72, 0,"个");
-     HZ24_24(96, 0,"是");
-     HZ24_24(120,0,"老");
-     HZ24_24(144,0,"子");
-     HZ24_24(168,0,"说");
-     HZ24_24(192,0,"的");
-     HZ24_24(216,0,"不");
-     HZ24_24(240,0,"是");
-  
-*/
-    
-    // OLED_WR_Byte(0xFF,OLED_DATA);
-    // OLED_WR_Byte(0xF0,OLED_DATA);
-
-    // OLED_WR_Byte(0xFF,OLED_DATA);
-    // OLED_WR_Byte(0xF0,OLED_DATA);
-
-    // OLED_WR_Byte(0xFF,OLED_DATA);
-    // OLED_WR_Byte(0xF0,OLED_DATA);
-
-    // OLED_WR_Byte(0xFF,OLED_DATA);
-    // OLED_WR_Byte(0xF0,OLED_DATA);
-
-    // OLED_WR_Byte(0xFF,OLED_DATA);
-    // OLED_WR_Byte(0xF0,OLED_DATA);
-
-    // OLED_WR_Byte(0xFF,OLED_DATA);
-    // OLED_WR_Byte(0xF0,OLED_DATA);
-
-    // OLED_WR_Byte(0xFF,OLED_DATA);
-    // OLED_WR_Byte(0xFF,OLED_DATA);
-
-    // OLED_WR_Byte(0xFF,OLED_DATA);
-    // OLED_WR_Byte(0xFF,OLED_DATA);
-    //OLED_WR_Byte(0x20,OLED_DATA);
-    //OLED_WR_Byte(0x20,OLED_DATA);
-    //OLED_WR_Byte(0x20,OLED_DATA);
-    //OLED_WR_Byte(0x20,OLED_DATA);
-    //OLED_WR_Byte(0x20,OLED_DATA);
-   /* int i;
-    for (i=0;i<10000;i++)
-    {
-        unsigned char str[100] = {0};
-        sprintf(str,"%03d",i);
-        Asc24_48(0,0,str);
-    }
-    */
-   // Asc20_40(0,0,"Hello Wrod!");
-
+    Fill_RAM(0x00);
+    Display_Str(0,20,"欢迎使用HUD,谨慎驾驶",24);
 }
+
+void Car_Speed(void)
+{
+    unsigned char str[30] = {0};
+    Fill_RAM(0x00);
+    Display_Str(0,20,"当前车速:",24);
+
+    srand(time(0));
+    while(1)
+    {
+        sprintf(str,"%  d KM/H  ",rand()%200 + 1);
+        Display_Str(112,20,str,24);
+        sleep(1);
+    }
+}
+
 int main(int argc, char **argv)
 {
-    // If you call this, it will not actually access the GPIO
-// Use for testing
- //       bcm2835_set_debug(1);
-
-
     OLED_INIT();
     OLED_TEST();
 
+    sleep(5);
+    Car_Speed();
     //bcm2835_spi_end();
-    //bcm2835_close();
+    bcm2835_close();
     return 0;
 }

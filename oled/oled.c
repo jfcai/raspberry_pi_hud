@@ -6,6 +6,7 @@
 #include <fcntl.h>  
 #include <string.h>  
 #include <sys/stat.h>
+#include <unistd.h>
 
 
 #define DOTS_BYTES(font) (FONT_WIDTH[font] * FONT_HEIGHT[font] / 8)
@@ -18,39 +19,16 @@ static int FONT_HEIGHT[6]={16,24,24,12,16,24};
 unsigned char *DOTS[6];
 
 
-/*
-void ReadFontDots(enum FONT font,const )
-{
-   char curPath[100] = {0};
-   char fontPath[200] = {0};
-   getcwd(curPath,sizeof(curPath));
-   sprintf(fontPath,"%s/FONT%d",font);
-   FILE* zk;
-   long dotSize = 0;
-
-
-   //打开字体文件
-  if((zk = fopen(fontPath, "rb")) == NULL)
-  {
-    return ;
-  }
-
-  //读字体文件到内存
-  fseek(zk,0,SEEK_END);
-  dotSize = ftell(zk);
-  DOTS[font] = (char *)malloc(dotSize+1);
-  if(DOTS[font] == NULL){
-    fclose(zk);
-    return;
-  }
-
-  fseek(zk,0,SEEK_SET);
-  fread(DOTS[font],dotSize,1,zk);
-  fclose(zk);
-}
-*/
-
-
+/**
+ * 转换字符编码
+ * @param
+ * @param
+ * @param
+ * @param
+ * @param
+ * @param
+ * @return
+ */
 int code_convert(char *from_charset, char *to_charset, char *inbuf, size_t inlen,  
         char *outbuf, size_t outlen) {  
     iconv_t cd;  
@@ -69,10 +47,25 @@ int code_convert(char *from_charset, char *to_charset, char *inbuf, size_t inlen
     return 0;  
 }  
   
+/** 转换utf-8 到 gb2312
+ * @param
+ * @param
+ * @param
+ * @param
+ * @return
+ */
 int u2g(char *inbuf, size_t inlen, char *outbuf, size_t outlen) {  
     return code_convert("utf-8", "gb2312", inbuf, inlen, outbuf, outlen);  
 }  
   
+
+/** 转换gb2312 到 utf-8
+ * @param
+ * @param
+ * @param
+ * @param
+ * @return
+ */
 int g2u(char *inbuf, size_t inlen, char *outbuf, size_t outlen) {  
     return code_convert("gb2312", "utf-8", inbuf, inlen, outbuf, outlen);  
 } 
@@ -92,7 +85,9 @@ void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
        OLED_SDIN_Set();
     else 
        OLED_SDIN_Clr();
+    
     OLED_SCLK_Set();
+    nanosleep(1);
     dat<<=1;   
   }
   OLED_DC_Set();  
@@ -237,7 +232,7 @@ void OLED_INIT(void)
     OLED_RST_Set();
 
     OLED_WR_Byte(0xAE,OLED_CMD); // Display Off
-  //  bcm2835_delay(1000);
+    bcm2835_delay(100);
  //   OLED_WR_Byte(0xAF,OLED_CMD); // Display On
     
     OLED_WR_Byte(0xFD,OLED_CMD); // Set Command Lock
@@ -327,9 +322,13 @@ void OLED_INIT(void)
      
      OLED_WR_Byte(0xA9,OLED_CMD); //   Disable Partial Display
         
-    Fill_RAM(0x00);
+   
    
    OLED_WR_Byte(0xAF,OLED_CMD); // Display On
+
+   bcm2835_delay(100);
+
+    
  
 }
 
@@ -435,31 +434,157 @@ void HZ24_24( unsigned char x, unsigned char y, unsigned char *str)
     // }   
 }
 
-void Display_HZ(unsigned char x,unsigned char y,unsigned char *str,enum FONT font)
+
+/**
+ * 显示一个中文
+ * @x: 开始列 范围 0 ~ (256 - font_size)
+ * @y: 开始行 0 ~ 63
+ * @str: 要显示的字符
+ * @font_size: 16 或 24
+ */
+void Display_1_Chinese(unsigned char x,unsigned char y,unsigned char *str,unsigned char font_size)
 {
-  int x1;
-  unsigned char gb2312[2] = {0};
-  unsigned char font_dots[72] = {0};
+  unsigned char x1,i,j;
+  unsigned char dots[72] = {0};
+  unsigned char fontPath[100] = {0};
+  int dotsLen = 0;
 
-  FILE* zk;
+  dotsLen = font_size * font_size / 8;
 
-  //内存地址每列4个点
+  FILE *fp;
   x1 = x / 4;
 
-  Set_Column_Address(Shift + x1,Shift + x1 + FONT_WIDTH[font] / 4 - 1);// 设置列坐标
-  Set_Row_Address(y,y+FONT_HEIGHT[font] - 1);
-  Set_Write_RAM();
+
+  sprintf(fontPath,"/home/pi/fonts/宋体%d.dot",font_size);
+
+  //打开字库文件
+  if((fp = fopen(fontPath,"rb")) == NULL)
+  {
+    printf("字体文件 %s 打开失败!\n",fontPath);
+    return;
+  }
+
+  //从点陈字库中读取点陈码
+  fseek(fp,HZ_INDEX(str) * dotsLen,SEEK_SET);
+  fread(dots,sizeof(unsigned char),dotsLen,fp);
+  fclose(fp);
 
 
+  x1=x/4; 
+  Set_Column_Address(Shift+x1,Shift+x1+ (font_size / 4) - 1); // 设置列坐标，shift为列偏移量由1322决定。3为24/4-1
+  Set_Row_Address(y,y + font_size - 1); 
+  Set_Write_RAM();   // 写显存
 
+#ifndef HUD
+  for(i = 0;i < dotsLen;i++)
+  {
+    Con_4_byte(dots[i]);
+  }
+#else
+  for(i = font_size - 1;i>0;i--)
+  {
+    for(j=0;j < dotsLen / font_size;j++)
+    {
+      Con_4_byte(dots[i * dotsLen / font_size + j]);
+    }
+  }
+  #endif
 }
 
-void Display_ASC(unsigned char x,unsigned char y,unsigned char * str,enum FONT font)
-{
 
+
+/**
+ * 显示一个英文字符
+ * @x: 开始列 范围 0 ~ (256 - font_size)
+ * @y: 开始行 0 ~ 63
+ * @str: 要显示的字符
+ * @font_size: 16 或 24
+ */
+void Display_1_Asc(unsigned char x,unsigned char y, unsigned char str,unsigned char font_size)
+{
+  unsigned char x1,i,j;
+  unsigned char dots[72] = {0};
+  unsigned char chinese[2] = {0};
+  unsigned char fontPath[100] = {0};
+  int dots_len = 0;
+  unsigned char fontWidth = 0;
+
+  FILE *fp;
+
+  x1 = x / 4;
+
+
+  if(font_size == 16)
+  {
+    fontWidth = 8;
+  }
+  else
+  {
+    fontWidth = 16;
+  }
+
+  dots_len = font_size *  fontWidth / 8;
+
+
+  sprintf(fontPath,"/home/pi/fonts/ASC%d.dot",font_size);
+
+  //打开字库文件
+  if((fp = fopen(fontPath,"rb")) == NULL)
+  {
+    printf("字体文件 %s 打开失败!\n",fontPath);
+    return;
+  }
+
+  //从点陈字库中读取点陈码
+  fseek(fp,(str-0x20) * dots_len ,SEEK_SET);
+  fread(dots,sizeof(unsigned char),dots_len,fp);
+  fclose(fp);
+
+  x1=x/4; 
+  Set_Column_Address(Shift+x1,Shift+x1+ (fontWidth / 4) - 1); // 设置列坐标，shift为列偏移量由1322决定。3为24/4-1
+  Set_Row_Address(y,y + font_size - 1); 
+  Set_Write_RAM();   // 写显存
+
+#ifndef HUD
+  for(i = 0;i < dots_len;i++)
+  {
+    Con_4_byte(dots[i]);
+  }
+#else
+  for(i = font_size - 1;i>0;i--)
+  {
+    for(j=0;j < dots_len / font_size;j++)
+    {
+      Con_4_byte(dots[i * dots_len / font_size + j]);
+    }
+  }
+  #endif
 }
 
-void Display_Str(unsigned char x,unsigned char y,unsigned char *str,enum FONT font)
-{
 
+
+void Display_Str(unsigned char x,unsigned char y,unsigned char *str,unsigned char font_size)
+{
+  unsigned char i,len;
+  unsigned char gb2312[200] = {0};
+
+
+  u2g(str,strlen(str),gb2312,200);
+  len = strlen(gb2312);
+
+
+
+  for(i = 0;i<len;i++)
+  {
+    if(gb2312[i] > 0xA0)
+    {
+      Display_1_Chinese(x,y,&gb2312[i],font_size);
+      i ++;
+      x += font_size;
+    }else
+    {
+      Display_1_Asc(x,y,gb2312[i],font_size);
+      x += font_size / 2;
+    }
+  }
 }

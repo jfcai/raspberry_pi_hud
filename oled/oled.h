@@ -9,7 +9,7 @@
 #define XLevelH   		0x10
 #define Max_Column  	0x3F      // 256/4-1
 #define Max_Row   		0x3F      // 64-1
-#define Brightness  	0xFF 
+#define Brightness  	0xFF
 #define Shift   		0x1C
 
 /*-----------------OLED端口定义 4线SPI---------------- */ 					   
@@ -37,10 +37,8 @@
 #define OLED_DATA 1	//写数据
 
 
-enum FONT{
-  HZ_16X16,
-  HZ_24X24
-};
+
+
 
 void OLED_WR_Byte(unsigned char dat,unsigned char cmd);
 void OLED_Init(void);
@@ -62,5 +60,5 @@ void Set_Master_Current(unsigned char d);
 void Vertical_Scroll(unsigned char a, unsigned char b, unsigned char c);
 void Set_Gray_Scale_Table(void);
 void Set_Linear_Gray_Scale_Table(void); 
-
+void Display_Str(unsigned char x,unsigned char y,unsigned char *str,unsigned char font_size);
 #endif
