@@ -61,4 +61,7 @@ void Vertical_Scroll(unsigned char a, unsigned char b, unsigned char c);
 void Set_Gray_Scale_Table(void);
 void Set_Linear_Gray_Scale_Table(void); 
 void Display_Str(unsigned char x,unsigned char y,unsigned char *str,unsigned char font_size);
+void Display_Number(unsigned char x,unsigned char y,unsigned char *str);
+void Fill_RAM_DEALY(unsigned char Data,unsigned long s);
+
 #endif

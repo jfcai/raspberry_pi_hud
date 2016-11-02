@@ -7,6 +7,7 @@
 #include <string.h>  
 #include <sys/stat.h>
 #include <unistd.h>
+#include "Number32X64.h"
 
 
 #define DOTS_BYTES(font) (FONT_WIDTH[font] * FONT_HEIGHT[font] / 8)
@@ -17,6 +18,9 @@ static int FONT_WIDTH[6]={16,24,24,6,8,12};
 static int FONT_HEIGHT[6]={16,24,24,12,16,24};
 
 unsigned char *DOTS[6];
+
+
+
 
 
 /**
@@ -137,6 +141,27 @@ unsigned char i,j;
         }
     }
 }
+
+
+void Fill_RAM_DEALY(unsigned char Data,unsigned long s)
+{
+unsigned char i,j;
+
+    Set_Column_Address(0x00,0x77);
+    Set_Row_Address(0x00,0x7F);
+    Set_Write_RAM();
+
+    for(i=0;i<128;i++)
+    {
+        for(j=0;j<120;j++)
+        {
+            OLED_WR_Byte(Data,OLED_DATA);
+            OLED_WR_Byte(Data,OLED_DATA); 
+            nanosleep(s);
+        }
+    }
+}
+
 
 void Con_4_byte(unsigned char DATA)
 {
@@ -507,6 +532,7 @@ void Display_1_Asc(unsigned char x,unsigned char y, unsigned char str,unsigned c
   unsigned char chinese[2] = {0};
   unsigned char fontPath[100] = {0};
   int dots_len = 0;
+  long filelen;
   unsigned char fontWidth = 0;
 
   FILE *fp;
@@ -536,6 +562,12 @@ void Display_1_Asc(unsigned char x,unsigned char y, unsigned char str,unsigned c
   }
 
   //从点陈字库中读取点陈码
+  fseek(fp,0,SEEK_END);
+  if(ftell(fp) < (str-0x20) * dots_len + dots_len){
+    printf("区位码不正确！");
+    fclose(fp);
+    return;
+  }
   fseek(fp,(str-0x20) * dots_len ,SEEK_SET);
   fread(dots,sizeof(unsigned char),dots_len,fp);
   fclose(fp);
@@ -576,15 +608,63 @@ void Display_Str(unsigned char x,unsigned char y,unsigned char *str,unsigned cha
 
   for(i = 0;i<len;i++)
   {
+
     if(gb2312[i] > 0xA0)
     {
+      if(x > (255 - font_size))
+      {
+        x = 0;
+        y += font_size;
+      }
+#ifdef DEBUG
+  //    printf("x=%d,y=%d,str=%s\n",x,y,&gb2312[i]);
+#endif
       Display_1_Chinese(x,y,&gb2312[i],font_size);
       i ++;
       x += font_size;
     }else
     {
+      if(x > (255 - font_size / 2))
+      {
+        x = 0;
+        y += font_size;
+      }
+#ifdef DEBUG
+ //     printf("x=%d,y=%d,str=%s\n",x,y,&gb2312[i]);
+#endif
       Display_1_Asc(x,y,gb2312[i],font_size);
       x += font_size / 2;
     }
+
+    
+
+  }
+}
+
+void Display_Number(unsigned char x,unsigned char y,unsigned char *str)
+{
+  int i,x1,j;
+  int len;
+  
+
+  len = strlen(str);
+  for(i=0;i<len;i++)
+  {
+    x1 = x / 4;
+    Set_Column_Address(Shift+x1,Shift+x1+ (32 / 4) - 1); // 设置列坐标，shift为列偏移量由1322决定。3为24/4-1
+    Set_Row_Address(y,y + 64 - 1); 
+    Set_Write_RAM();   // 写显存
+
+    for(j=0;j<256;j++){
+      if(str[i] == ' '){
+        Con_4_byte(0x00);
+      }
+      else{
+        Con_4_byte(Nums[(str[i] - 0x30) * 256 + j]);
+      }
+      
+    }
+
+    x += 32;
   }
 }
