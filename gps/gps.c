@@ -1,25 +1,39 @@
-#include<stdio.h>  
-#include<stdlib.h>  
-#include<string.h>  
-#include<errno.h>  
-#include<sys/types.h>  
-#include<sys/socket.h>  
-#include<netinet/in.h>  
+#include <stdio.h>  
+#include <stdlib.h>  
+#include <string.h>  
+#include <errno.h>  
+#include <sys/types.h>  
+#include <sys/socket.h>  
+#include <netinet/in.h>  
+#include "strsplit.h"
+#include <time.h>
   
 #define MAXLINE 4096
 char gprmc[4096];
-  
+ 
+int Speed = 0; 
 int gps_gprmc(char *gps)
 {
+  char str[4096] = {0};
+  char speed[10];
+  char *parts[2];
+  
+  strcpy(str,gps);
+//  printf("%s\n",str);
+  size_t size = strsplit(str,parts,",");
+  int i= 0;
+//  
+//  for(i=0;i < size; i++){
+//   printf("parts:%d:%s\n",i,parts[i]); 
+//}
 
+  if(size < 8) return 0;
 
-	
-	char speed[10];
-	//sscanf(gps,"%*[^,],%[^,],%s",a,b,c);
-	sscanf(gps,"%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%[^,]",speed);
+  strcpy(speed,parts[7]);
 
-	return atoi(speed);
-	
+	//sscanf(gps,"%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%[^,]",speed);
+  Speed = (int)(atof(speed) * 2);
+  return 0;	
 	//printf("%s\n",gps);
 	//scanf("%s%s\n",time,status);
 	//scanf(gps,"%s%s%s%s%s%s%s%s%*s%s",time,status,wd,ns,jd,ew,speed,date);
@@ -28,12 +42,15 @@ int gps_gprmc(char *gps)
 
 int gps_speed(void)
 {
-  if(strlen(gprmc) == 0) return 0;
-  
-  char speed[10];
-  sscanf(gprmc,"%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%[^,]",speed);
-
-  return atoi(speed) * 2;
+ // if(strlen(gprmc) == 0) return 0;
+ // 
+ // char speed[10];
+ // sscanf(gprmc,"%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%[^,]",speed);
+ //
+ // return atoi(speed) * 2;
+  //srand( (unsigned)time( NULL ));
+  //return rand() % 100;
+  return Speed;
 }
 
 int gps(void)  
@@ -62,13 +79,22 @@ int gps(void)
     }  
   
 
-    //连接服务器
+    //设置为非阻塞模式
+    //unsigned long ul = 1;
+    //ioctl(sockfd,FIONBIO,&ul);
 
-  	
+    //连接服务器
   	if(connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) < 0 )
   	{
+      close(sockfd);
   		return -1;
   	}
+
+    //设置发送和接收超时间
+  //struct timeval tv_out={3,0};
+  //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(const char*)&tv_out,sizeof(tv_out));
+  //setsockopt(sockfd,SOL_SOCKET,SO_SNDTIMEO,(const char*)&tv_out,sizeof(tv_out));
+
   	
   
   
@@ -78,12 +104,12 @@ int gps(void)
 	       continue;
 	    } 
 
-	    //printf("%s\n",buf);
+//	    printf("%s\n",buf);
 	    p = strstr(buf,"$GPRMC");
 	    if(p != NULL)
 	    {
 	    	//printf("%d",gps_gprmc("$GPRMC,104337.000,A,2823.0783,N,12121.3476,E,11.000,316.13,311016,,,A*5E\r\n"));
-	    	//gSpeed = gps_gprmc(p);
+	      gps_gprmc(p);
         strcpy(gprmc,p);
 	    }
  	} 

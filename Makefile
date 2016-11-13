@@ -1,11 +1,14 @@
 CC:= gcc
 
 SRC += ./main.c
+SRC += ./blue.c
 SRC += ./oled/oled.c
 SRC += ./gps/gps.c
 SRC += ./db/db.c
 SRC += ./db/content.c
 SRC += ./cJSON/cJSON.c
+SRC += ./strdup/strdup.c
+SRC += ./strsplit/strsplit.c
 
 OBJS = $(SRC:.c=.o)
 
@@ -13,6 +16,8 @@ INC = -I ./oled
 INC += -I ./gps
 INC += -I ./db
 INC += -I ./cJSON
+INC += -I ./strdup
+INC += -I ./strsplit
 
 LIB := -lbcm2835
 LIB += -liconv

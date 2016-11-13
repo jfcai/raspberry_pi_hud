@@ -74,7 +74,7 @@ int g2u(char *inbuf, size_t inlen, char *outbuf, size_t outlen) {
     return code_convert("gb2312", "utf-8", inbuf, inlen, outbuf, outlen);  
 } 
 
-
+/*
 void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
 {
   unsigned char i;       
@@ -96,6 +96,20 @@ void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
   }
   OLED_DC_Set();  
 }
+*/
+
+
+void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
+{
+    if(cmd)
+      bcm2835_gpio_set(OLED_DC);
+    else 
+      bcm2835_gpio_clr(OLED_DC);
+    bcm2835_spi_transfer(dat);
+    bcm2835_gpio_set(OLED_DC);
+    //bcm2835_spi_writenb((char *)dat,1);
+}
+
 
 
 void Set_Column_Address(unsigned char a, unsigned char b)
@@ -239,16 +253,13 @@ void OLED_INIT(void)
 {
   
 
-    if (!bcm2835_init())
-    {
-      printf("bcm2835_init failed. Are you running as root??\n");
-      return ;
-    }
+    
 
-    bcm2835_gpio_fsel(OLED_DC,    BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_fsel(OLED_RST,   BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_fsel(OLED_SCLK,  BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_fsel(OLED_SDIN,  BCM2835_GPIO_FSEL_OUTP);
+
+    //bcm2835_gpio_fsel(OLED_DC,    BCM2835_GPIO_FSEL_OUTP);
+    //bcm2835_gpio_fsel(OLED_RST,   BCM2835_GPIO_FSEL_OUTP);
+    //bcm2835_gpio_fsel(OLED_SCLK,  BCM2835_GPIO_FSEL_OUTP);
+    //bcm2835_gpio_fsel(OLED_SDIN,  BCM2835_GPIO_FSEL_OUTP);
 
     OLED_RST_Set();
     bcm2835_delay(100);
@@ -641,7 +652,7 @@ void Display_Str(unsigned char x,unsigned char y,unsigned char *str,unsigned cha
   }
 }
 
-void Display_Number(unsigned char x,unsigned char y,unsigned char *str)
+void Display_Number(unsigned char x,unsigned char y,const unsigned char *str)
 {
   int i,x1,j;
   int len;

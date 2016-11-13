@@ -1,4 +1,4 @@
 #!/bin/bash
 make clean
 make
-./hud
+sudo ./hud

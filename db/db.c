@@ -14,7 +14,7 @@ int get_1_Msg(char *str)
     sqlite3 *db = NULL;
     sqlite3_open(dbFile,&db);
 
-    ret = sqlite3_get_table(db,"select * from t_msg where fkey is null or fkey = '0' limit 1",&dbresult,&nrow,&ncolumn,&errmsg);
+    ret = sqlite3_get_table(db,"select * from t_msg where fkey is null or fkey = '0' order by fid desc limit 1",&dbresult,&nrow,&ncolumn,&errmsg);
     if(ret == SQLITE_OK && nrow > 0){
     	printf("ncolumn=%d,nrow=%d\n",ncolumn,nrow);
         index=ncolumn;
@@ -33,7 +33,7 @@ int get_1_Msg(char *str)
 
 void del_1_Msg(int id)
 {
-	char sql[1024] = {0};
+	char sql[4096] = {0};
 	sqlite3 *db = NULL;
     sqlite3_open(dbFile,&db);
 
@@ -45,7 +45,7 @@ void del_1_Msg(int id)
 
 void insert_1_msg(const char *msg)
 {
-	char sql[1024] = {0};
+	char sql[4096] = {0};
 	sqlite3 *db = NULL;
     sqlite3_open(dbFile,&db);
     sprintf(sql,"insert into t_msg(fmsg) select '%s' where not exists(select * from t_msg where fmsg = '%s')",msg,msg);
