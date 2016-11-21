@@ -87,7 +87,7 @@ void ShowOled(void)
             Display_Str(0,0,ANSC_MSG,16);
             memset(ANSC_MSG,0,4096);
             sleep(6);
-            Fill_RAM(0x00);
+            msgid = 1;
         }
 
         curSpeed = CarSpeed;

@@ -96,13 +96,13 @@ void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
     }
        
     //等待数据稳定
-    nanosleep(1);
+    //nanosleep(1);
 
     //拉高时钟，让设备接收数据
     OLED_SCLK_Set();
 
     //等待设备接收数据
-    nanosleep(1);
+    //nanosleep(1);
 
     dat<<=1;   
   }
@@ -154,10 +154,11 @@ void Fill_RAM(unsigned char Data)
 {
 unsigned char i,j;
 
-    Set_Column_Address(0x00,0x77);
-    Set_Row_Address(0x00,0x7F);
+    Set_Column_Address(0x00,63);
+    Set_Row_Address(0x00,63);
     Set_Write_RAM();
 
+/*
     for(i=0;i<128;i++)
     {
         for(j=0;j<120;j++)
@@ -166,6 +167,13 @@ unsigned char i,j;
             OLED_WR_Byte(Data,OLED_DATA); 
         }
     }
+    */
+
+  for(i = 0;i < 2048; i ++)
+  {
+    OLED_WR_Byte(Data,OLED_DATA);
+    OLED_WR_Byte(Data,OLED_DATA); 
+  }
 }
 
 
