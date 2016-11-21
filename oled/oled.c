@@ -74,31 +74,43 @@ int g2u(char *inbuf, size_t inlen, char *outbuf, size_t outlen) {
     return code_convert("gb2312", "utf-8", inbuf, inlen, outbuf, outlen);  
 } 
 
-/*
+
 void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
 {
   unsigned char i;       
   if(cmd)
     OLED_DC_Set();
   else 
-    OLED_DC_Clr();      
+    OLED_DC_Clr();   
+  
+  nanosleep(1);
+
   for(i=0;i<8;i++)
   {       
     OLED_SCLK_Clr();
-    if(dat&0x80)
-       OLED_SDIN_Set();
-    else 
-       OLED_SDIN_Clr();
-    
-    OLED_SCLK_Set();
+    if(dat&0x80){
+      OLED_SDIN_Set();
+    }
+    else {
+      OLED_SDIN_Clr();
+    }
+       
+    //等待数据稳定
     nanosleep(1);
+
+    //拉高时钟，让设备接收数据
+    OLED_SCLK_Set();
+
+    //等待设备接收数据
+    nanosleep(1);
+
     dat<<=1;   
   }
   OLED_DC_Set();  
 }
-*/
 
 
+/*
 void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
 {
     if(cmd)
@@ -110,7 +122,7 @@ void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
     //bcm2835_spi_writenb((char *)dat,1);
 }
 
-
+*/
 
 void Set_Column_Address(unsigned char a, unsigned char b)
 {
@@ -256,10 +268,10 @@ void OLED_INIT(void)
     
 
 
-    //bcm2835_gpio_fsel(OLED_DC,    BCM2835_GPIO_FSEL_OUTP);
-    //bcm2835_gpio_fsel(OLED_RST,   BCM2835_GPIO_FSEL_OUTP);
-    //bcm2835_gpio_fsel(OLED_SCLK,  BCM2835_GPIO_FSEL_OUTP);
-    //bcm2835_gpio_fsel(OLED_SDIN,  BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_fsel(OLED_DC,    BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_fsel(OLED_RST,   BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_fsel(OLED_SCLK,  BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_fsel(OLED_SDIN,  BCM2835_GPIO_FSEL_OUTP);
 
     OLED_RST_Set();
     bcm2835_delay(100);

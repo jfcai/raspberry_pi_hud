@@ -31,9 +31,12 @@
 #include "db.h"
 #include "content.h"
 #include "blue.h"
+#include "can.h"
 
 
 char ANSC_MSG[4096] = {0};
+int CarSpeed = 0;
+int CarRpm = 0;
 
 int getIP (void) {
     struct ifaddrs * ifAddrStruct=NULL;
@@ -87,7 +90,7 @@ void ShowOled(void)
             Fill_RAM(0x00);
         }
 
-        curSpeed = gps_speed();
+        curSpeed = CarSpeed;
         if(curSpeed != lastSpeed)
         {
 
@@ -99,8 +102,8 @@ void ShowOled(void)
                 Display_Str(200,28,"km/h",24);
             }
 
-            sprintf(str,"%   3d",curSpeed);
-            printf("%s\n",str);
+            sprintf(str,"%3d",curSpeed);
+            printf("当前速度 %s km/h\n",str);
             Display_Number(48,0,str);
             lastSpeed = curSpeed;
 
@@ -173,6 +176,24 @@ void getGpsSpeed(void)
     }
 }
 
+void getCanSpeed(void){
+    int i;
+    while(1)
+    {
+        if(read_can_info() == -1){
+            printf("读取CAN速度失败，正在重试...\n");
+            sleep(5);
+            i ++;
+        }
+
+        if(i > 10)
+        {
+            Display_Str(0,0,"读取CAN速度失败，正在重试",24);
+            i = 0;
+        }
+    }
+}
+
 int main(int argc, char **argv)
 {
 
@@ -182,25 +203,26 @@ int main(int argc, char **argv)
       return ;
     }
 
-    if (!bcm2835_spi_begin())
-    {
-      printf("bcm2835_spi_begin failedg. Are you running as root??\n");
-      return 1;
-    }
+    //if (!bcm2835_spi_begin())
+    //{
+    // printf("bcm2835_spi_begin failedg. Are you running as root??\n");
+    //  return 1;
+    //}
 
-    bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);      // The default
-    bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);                   // The default
-    bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_16); // The default
-    bcm2835_spi_chipSelect(BCM2835_SPI_CS0);                      // The default
-    bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);      // the default
+    //bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);      // The default
+    //bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);                   // The default
+    //bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_16); // The default
+    //bcm2835_spi_chipSelect(BCM2835_SPI_CS0);                      // The default
+    //bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);      // the default
 
-    bcm2835_gpio_fsel(OLED_DC,    BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_fsel(OLED_RST,   BCM2835_GPIO_FSEL_OUTP);
-
+    //bcm2835_gpio_fsel(OLED_DC,    BCM2835_GPIO_FSEL_OUTP);
+    //bcm2835_gpio_fsel(OLED_RST,   BCM2835_GPIO_FSEL_OUTP);
+    printf("初始化OLED屏...\n");
     OLED_INIT();
     Fill_RAM_DEALY(0xff,100000000);
     Fill_RAM_DEALY(0x00,100000000);
 
+    printf("显示数字...\n");
     Display_Number(0,0,"12345678");
     sleep(2);
 
@@ -209,16 +231,17 @@ int main(int argc, char **argv)
     //Display_Str(0,0,"正在启动,请稍候...",24);
     //sleep(10);
 
-    getIP();
-    sleep(5);
+    //printf("读取IP地址...\n");
+    //getIP();
+    //sleep(5);
     
    // exit(0);
     //创建读GPS信息进程
     pthread_t id;
-    pthread_create(&id,NULL,(void *)getGpsSpeed,NULL);
+    pthread_create(&id,NULL,(void *)getCanSpeed,NULL);
 
-    pthread_t id2;
-    pthread_create(&id2,NULL,(void *)getNews,NULL);
+  //  pthread_t id2;
+//    pthread_create(&id2,NULL,(void *)getNews,NULL);
 
     //开启蓝牙进程
     pthread_t id3;

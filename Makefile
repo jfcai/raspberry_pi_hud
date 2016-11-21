@@ -2,6 +2,7 @@ CC:= gcc
 
 SRC += ./main.c
 SRC += ./blue.c
+SRC += ./can.c
 SRC += ./oled/oled.c
 SRC += ./gps/gps.c
 SRC += ./db/db.c
@@ -34,6 +35,6 @@ DEFS = -D DEBUG
 all:$(OBJS)
 	$(CC) $(OBJS) $(DEFS) $(LIB) -o $(TARGET)
 $(OBJS):%.o:%.c
-	$(CC) -c $< $(DEFS) -o $@ $(INC)
+	$(CC) -Wall -g -c $< $(DEFS) -o $@ $(INC)
 clean:
 	rm $(OBJS) $(TARGET)
