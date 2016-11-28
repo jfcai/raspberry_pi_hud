@@ -35,6 +35,6 @@ DEFS = -D DEBUG
 all:$(OBJS)
 	$(CC) $(OBJS) $(DEFS) $(LIB) -o $(TARGET)
 $(OBJS):%.o:%.c
-	$(CC) -Wall -g -c $< $(DEFS) -o $@ $(INC)
+	$(CC) -c $< $(DEFS) -o $@ $(INC)
 clean:
 	rm $(OBJS) $(TARGET)

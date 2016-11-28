@@ -51,7 +51,6 @@ void Draw_Rectangle(unsigned char Data, unsigned char a, unsigned char b, unsign
 void Fill_Block(unsigned char Data, unsigned char a, unsigned char b, unsigned char c, unsigned char d);
 void Grayscale(void);
 void Set_Remap_Format(unsigned char d);
-void Show_Pattern(unsigned char *Data_Pointer, unsigned char a, unsigned char b, unsigned char c, unsigned char d);
 void Con_4_byte(unsigned char DATA);
 void Set_Partial_Display(unsigned char a, unsigned char b, unsigned char c);
 void Set_Display_Offset(unsigned char d);
@@ -63,5 +62,6 @@ void Set_Linear_Gray_Scale_Table(void);
 void Display_Str(unsigned char x,unsigned char y,unsigned char *str,unsigned char font_size);
 void Display_Number(unsigned char x,unsigned char y,const unsigned char *str);
 void Fill_RAM_DEALY(unsigned char Data,unsigned long s);
+void Display_Bmp(unsigned char x,unsigned char y,const unsigned char *str);
 
 #endif

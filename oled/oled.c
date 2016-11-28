@@ -10,6 +10,7 @@
 #include "Number32X64.h"
 
 
+
 #define DOTS_BYTES(font) (FONT_WIDTH[font] * FONT_HEIGHT[font] / 8)
 #define HZ_INDEX(hz)    ((hz[0] - 0xa1) * 94 + (hz[1] - 0xa1))
 
@@ -20,7 +21,7 @@ static int FONT_HEIGHT[6]={16,24,24,12,16,24};
 unsigned char *DOTS[6];
 
 
-
+void OLED_INIT(void);
 
 
 /**
@@ -82,8 +83,8 @@ void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
     OLED_DC_Set();
   else 
     OLED_DC_Clr();   
-  
-  nanosleep(1);
+ // OLED_SCLK_Set();
+//  nanosleep(10);
 
   for(i=0;i<8;i++)
   {       
@@ -96,19 +97,51 @@ void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
     }
        
     //等待数据稳定
-    //nanosleep(1);
-
+   // nanosleep(1);
     //拉高时钟，让设备接收数据
     OLED_SCLK_Set();
 
     //等待设备接收数据
-    //nanosleep(1);
-
+   // nanosleep(1);
     dat<<=1;   
   }
-  OLED_DC_Set();  
+ // OLED_DC_Set();  
+//nanosleep(1);
 }
 
+
+void OLED_WR_Byte2(uint8_t dat,uint8_t cmd)
+{
+  unsigned char i;
+  if(cmd)
+    OLED_DC_Set();
+  else
+    OLED_DC_Clr();
+OLED_SCLK_Clr();
+  nanosleep(100);
+  //bcm2835_delay(1000);
+  for(i=0;i<8;i++)
+  {
+    OLED_SCLK_Clr();
+    if(dat&0x80){
+      OLED_SDIN_Set();
+    }
+    else {
+      OLED_SDIN_Clr();
+    }
+
+    //等待数据稳定
+    nanosleep(30);
+    //拉高时钟，让设备接收数据
+    OLED_SCLK_Set();
+
+    //等待设备接收数据
+    nanosleep(30);
+    dat<<=1;
+  }
+ // OLED_DC_Set();
+//nanosleep(10);
+} 
 
 /*
 void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
@@ -154,11 +187,12 @@ void Fill_RAM(unsigned char Data)
 {
 unsigned char i,j;
 
-    Set_Column_Address(0x00,63);
-    Set_Row_Address(0x00,63);
+
+    Set_Column_Address(0x00,0x77);
+    Set_Row_Address(0x00,0x7f);
     Set_Write_RAM();
 
-/*
+
     for(i=0;i<128;i++)
     {
         for(j=0;j<120;j++)
@@ -167,13 +201,9 @@ unsigned char i,j;
             OLED_WR_Byte(Data,OLED_DATA); 
         }
     }
-    */
+    
+    OLED_INIT();
 
-  for(i = 0;i < 2048; i ++)
-  {
-    OLED_WR_Byte(Data,OLED_DATA);
-    OLED_WR_Byte(Data,OLED_DATA); 
-  }
 }
 
 
@@ -261,9 +291,88 @@ void Con_4_byte(unsigned char DATA)
       
       d=d<<2;                                //左移两位
      // printf("%02x\n",d1_4byte[i] );
+
      OLED_WR_Byte(d1_4byte[i],OLED_DATA);       //写前2列
+     //nanosleep(20000);
      //printf("%02x\n",d2_4byte[i] );
      OLED_WR_Byte(d2_4byte[i],OLED_DATA);               //写后2列    共计4列
+     //nanosleep(20000);
+   }
+
+}
+
+
+
+
+void Con_4_byte2(unsigned char DATA)
+{
+   unsigned char d1_4byte[4],d2_4byte[4];
+   unsigned char i;
+   unsigned char d,k1,k2;
+   d=DATA;
+ 
+  for(i=0;i<2;i++)   // 一两位的方式写入  2*4=8位
+   {
+     k1=d&0xc0;     //当i=0时 为D7,D6位 当i=1时 为D5,D4位
+
+     /****有4种可能，16级灰度,一个字节数据表示两个像素，一个像素对应一个字节的4位***/
+
+     switch(k1)
+       {
+     case 0x00:
+           d1_4byte[i]=0x00;
+           
+         break;
+     case 0x40:  // 0100,0000
+           d1_4byte[i]=0x0f;
+           
+         break; 
+     case 0x80:  //1000,0000
+           d1_4byte[i]=0xf0;
+           
+         break;
+     case 0xc0:   //1100,0000
+           d1_4byte[i]=0xff;
+          
+         break;  
+     default:
+         break;
+       }
+     
+       d=d<<2;
+      k2=d&0xc0;     //当i=0时 为D7,D6位 当i=1时 为D5,D4位
+
+     /****有4种可能，16级灰度,一个字节数据表示两个像素，一个像素对应一个字节的4位***/
+
+     switch(k2)
+       {
+     case 0x00:
+           d2_4byte[i]=0x00;
+           
+         break;
+     case 0x40:  // 0100,0000
+           d2_4byte[i]=0x0f;
+           
+         break; 
+     case 0x80:  //1000,0000
+           d2_4byte[i]=0xf0;
+         
+         break;
+     case 0xc0:   //1100,0000
+           d2_4byte[i]=0xff;
+          
+         break;  
+     default:
+         break;
+       }
+      
+      d=d<<2;                                //左移两位
+     // printf("%02x\n",d1_4byte[i] );
+     OLED_WR_Byte2(d1_4byte[i],OLED_DATA);       //写前2列
+     //usleep(1);
+     //printf("%02x\n",d2_4byte[i] );
+     OLED_WR_Byte2(d2_4byte[i],OLED_DATA);               //写后2列    共计4列
+     //usleep(1);
    }
 
 }
@@ -287,8 +396,8 @@ void OLED_INIT(void)
     bcm2835_delay(100);
     OLED_RST_Set();
 
-    OLED_WR_Byte(0xAE,OLED_CMD); // Display Off
-    bcm2835_delay(100);
+   // OLED_WR_Byte(0xAE,OLED_CMD); // Display Off
+  //  bcm2835_delay(100);
  //   OLED_WR_Byte(0xAF,OLED_CMD); // Display On
     
     OLED_WR_Byte(0xFD,OLED_CMD); // Set Command Lock
@@ -491,6 +600,49 @@ void HZ24_24( unsigned char x, unsigned char y, unsigned char *str)
 }
 
 
+
+
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//  Show Pattern (Partial or Full Screen)
+//
+//    a: Column Address of Start
+//    b: Column Address of End (Total Columns Devided by 4)
+//    c: Row Address of Start
+//    d: Row Address of End
+// 灰度模式下显示一副图片
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void Show_Pattern(unsigned char ch, unsigned char a, unsigned char b, unsigned char c, unsigned char d)
+{
+       
+unsigned char *Src_Pointer;
+unsigned char i,j;
+ 
+  //取模时候像素正序  （不能反序与2.7不同）
+  if(ch == ' '){
+    Src_Pointer=&gImage[10 * 1024];
+  }
+  else{
+    Src_Pointer=&gImage[(ch - 0x30) * 1024];
+  }
+  Set_Column_Address(Shift+a,Shift+b);
+  Set_Row_Address(c,d);
+  Set_Write_RAM();
+  for(i=0;i<(d-c+1);i++)
+  {
+    for(j=0;j<(b-a+1);j++)
+    {
+      OLED_WR_Byte(*Src_Pointer,OLED_DATA);
+      Src_Pointer++;
+      OLED_WR_Byte(*Src_Pointer,OLED_DATA);
+      Src_Pointer++;
+    }
+  }
+
+ }
+
+
+
+
 /**
  * 显示一个中文
  * @x: 开始列 范围 0 ~ (256 - font_size)
@@ -688,14 +840,29 @@ void Display_Number(unsigned char x,unsigned char y,const unsigned char *str)
 
     for(j=0;j<256;j++){
       if(str[i] == ' '){
-        Con_4_byte(0x00);
+        Con_4_byte2(0x00);
       }
       else{
-        Con_4_byte(Nums[(str[i] - 0x30) * 256 + j]);
+        Con_4_byte2(Nums[(str[i] - 0x30) * 256 + j]);
       }
       
     }
 
     x += 32;
+  }
+}
+
+
+void Display_Bmp(unsigned char x,unsigned char y,const unsigned char *str)
+{
+  int i,x1,j;
+  int len;
+  x1 = x / 4;
+  len = strlen(str);
+  for(i=0;i<len;i++)
+  {
+//    if(str[i] != ' ')
+    Show_Pattern(str[i],x1,x1 + 7,y,63);
+    x1 +=8;
   }
 }

@@ -34,6 +34,13 @@ int read_can_info(void)
 	int s;
 	int ret;
 
+//	int k;
+//	for(k = 0;k<999;k++){
+//		CarSpeed = k;
+//		if (k >= 990)
+//			k = 0;
+//	}
+
 	struct sockaddr_can addr;
 	//char ctrlmsg[CMSG_SPACE(sizeof(struct timeval)) + CMSG_SPACE(sizeof(__u32))];
 	//struct iovec iov;

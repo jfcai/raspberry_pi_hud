@@ -46,9 +46,21 @@ void del_1_Msg(int id)
 void insert_1_msg(const char *msg)
 {
 	char sql[4096] = {0};
+    char buff[121] = {0};
+    int i ,len;
 	sqlite3 *db = NULL;
     sqlite3_open(dbFile,&db);
-    sprintf(sql,"insert into t_msg(fmsg) select '%s' where not exists(select * from t_msg where fmsg = '%s')",msg,msg);
+
+    len = strlen(msg);
+    //如果数据超长则拆分
+    if(len > 120){
+        //for(i = 0;i+= 120;i < len){
+        //    strncpy(buff,msg,120);
+        //    if(buff[119] )
+        //}
+        strncpy(buff,msg,120);
+    }
+    sprintf(sql,"insert into t_msg(fmsg) select '%s' where not exists(select * from t_msg where fmsg = '%s')",buff,buff);
     sqlite3_exec(db,sql,NULL,NULL,NULL);
     sqlite3_close(db);
 }

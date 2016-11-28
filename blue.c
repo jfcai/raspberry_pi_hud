@@ -162,7 +162,7 @@ int getANCS(void)
                     nread = write(fd,buff,14);
                     //printf("写入字符串(%d):%s\n",nread,buff);
                     memset(buff,0,BUFFER_LENG);
-                    usleep(500000);
+                    usleep(300000);
                     if((nread = read(fd,buff,1024)) <= 0) continue;
                     //printf("收到字符串(%d):%s\n",nread,buff);
                     getContent(buff,nread,msg);
@@ -175,7 +175,7 @@ int getANCS(void)
                     nread = write(fd,buff,14);
                    // printf("写入字符串(%d):%s\n",nread,buff);
                     memset(buff,0,BUFFER_LENG);
-                    usleep(500000);
+                    usleep(300000);
                     if((nread = read(fd,buff,1024)) <= 0) continue;
                     //printf("收到字符串(%d):%s\n",nread,buff);
                     memset(msg,0,1024);
@@ -189,7 +189,7 @@ int getANCS(void)
                     nread = write(fd,buff,14);
                     //printf("写入字符串(%d):%s\n",nread,buff);
                     memset(buff,0,BUFFER_LENG);
-                    usleep(500000);
+                    usleep(300000);
                     if((nread = read(fd,buff,1024)) <= 0) continue;
                     memset(msg,0,1024);
                     getContent(buff,nread,msg);

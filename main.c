@@ -74,6 +74,7 @@ void ShowOled(void)
     int lastSpeed = 1;
     int count = 0;
     int msgid = 0;
+    int ShowCount = 0;
     unsigned char str[30] = {0};
     unsigned char msg[4096] = {0};
 
@@ -102,12 +103,22 @@ void ShowOled(void)
                 Display_Str(200,28,"km/h",24);
             }
 
-            sprintf(str,"%3d",curSpeed);
-            printf("当前速度 %s km/h\n",str);
-            Display_Number(48,0,str);
+            if(ShowCount > 1000){
+                Fill_RAM(0x00);
+                Display_Str(200,28,"km/h",24);
+                ShowCount = 0;
+            }
+
+            sprintf(str,"%03d",curSpeed);
+            //printf("当前速度 %s km/h\n",str);
+           // Display_Number(88,0,str);
+           // usleep(510000);
+            Display_Str(120,28,str,24);       
+//           Display_Bmp(88,0,str);    
             lastSpeed = curSpeed;
 
             count = 0;
+            ShowCount ++;
 
             continue;
         }
@@ -116,6 +127,8 @@ void ShowOled(void)
 
 
         if(curSpeed == 0 && lastSpeed == 0 && count > 20 && count % 20 == 0) msgid = 0;
+
+        if(curSpeed == 0) count ++;
 
         //当停车状态超过3秒，从信息库中读取一条信息并显示，显示后删除
         if(curSpeed == 0 && lastSpeed == 0 && msgid == 0 && count >= 20){
@@ -130,7 +143,7 @@ void ShowOled(void)
             }
         }
 
-        count ++;
+        //count ++;
 
         //printf("curSpeed=%d,lastSpeed=%d,count=%d\n",curSpeed,lastSpeed,count);
         
@@ -219,15 +232,16 @@ int main(int argc, char **argv)
     //bcm2835_gpio_fsel(OLED_RST,   BCM2835_GPIO_FSEL_OUTP);
     printf("初始化OLED屏...\n");
     OLED_INIT();
-    Fill_RAM_DEALY(0xff,100000000);
-    Fill_RAM_DEALY(0x00,100000000);
+    //Fill_RAM_DEALY(0xff,100000000);
+    //Fill_RAM_DEALY(0x00,100000000);
 
-    printf("显示数字...\n");
-    Display_Number(0,0,"12345678");
-    sleep(2);
+    //Fill_RAM(0x00);
+    //Display_Str(0,0,"系统正在启动...",16);
+    //sleep(1);
+
 
     //显示欢迎转而
-    Fill_RAM(0x00);
+    //Fill_RAM(0x00);
     //Display_Str(0,0,"正在启动,请稍候...",24);
     //sleep(10);
 
@@ -240,8 +254,8 @@ int main(int argc, char **argv)
     pthread_t id;
     pthread_create(&id,NULL,(void *)getCanSpeed,NULL);
 
-  //  pthread_t id2;
-//    pthread_create(&id2,NULL,(void *)getNews,NULL);
+    pthread_t id2;
+    pthread_create(&id2,NULL,(void *)getNews,NULL);
 
     //开启蓝牙进程
     pthread_t id3;
