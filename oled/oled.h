@@ -63,5 +63,5 @@ void Display_Str(unsigned char x,unsigned char y,unsigned char *str,unsigned cha
 void Display_Number(unsigned char x,unsigned char y,const unsigned char *str);
 void Fill_RAM_DEALY(unsigned char Data,unsigned long s);
 void Display_Bmp(unsigned char x,unsigned char y,const unsigned char *str);
-
+void Show_Pattern(unsigned char ch, unsigned char a, unsigned char b, unsigned char c, unsigned char d);
 #endif

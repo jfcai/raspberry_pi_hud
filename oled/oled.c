@@ -84,7 +84,7 @@ void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
   else 
     OLED_DC_Clr();   
  // OLED_SCLK_Set();
-//  nanosleep(10);
+  nanosleep(10);
 
   for(i=0;i<8;i++)
   {       
@@ -105,43 +105,12 @@ void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
    // nanosleep(1);
     dat<<=1;   
   }
- // OLED_DC_Set();  
+ OLED_SCLK_Set();
+ OLED_DC_Set();  
 //nanosleep(1);
 }
 
 
-void OLED_WR_Byte2(uint8_t dat,uint8_t cmd)
-{
-  unsigned char i;
-  if(cmd)
-    OLED_DC_Set();
-  else
-    OLED_DC_Clr();
-OLED_SCLK_Clr();
-  nanosleep(100);
-  //bcm2835_delay(1000);
-  for(i=0;i<8;i++)
-  {
-    OLED_SCLK_Clr();
-    if(dat&0x80){
-      OLED_SDIN_Set();
-    }
-    else {
-      OLED_SDIN_Clr();
-    }
-
-    //等待数据稳定
-    nanosleep(30);
-    //拉高时钟，让设备接收数据
-    OLED_SCLK_Set();
-
-    //等待设备接收数据
-    nanosleep(30);
-    dat<<=1;
-  }
- // OLED_DC_Set();
-//nanosleep(10);
-} 
 
 /*
 void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
@@ -303,79 +272,6 @@ void Con_4_byte(unsigned char DATA)
 
 
 
-
-void Con_4_byte2(unsigned char DATA)
-{
-   unsigned char d1_4byte[4],d2_4byte[4];
-   unsigned char i;
-   unsigned char d,k1,k2;
-   d=DATA;
- 
-  for(i=0;i<2;i++)   // 一两位的方式写入  2*4=8位
-   {
-     k1=d&0xc0;     //当i=0时 为D7,D6位 当i=1时 为D5,D4位
-
-     /****有4种可能，16级灰度,一个字节数据表示两个像素，一个像素对应一个字节的4位***/
-
-     switch(k1)
-       {
-     case 0x00:
-           d1_4byte[i]=0x00;
-           
-         break;
-     case 0x40:  // 0100,0000
-           d1_4byte[i]=0x0f;
-           
-         break; 
-     case 0x80:  //1000,0000
-           d1_4byte[i]=0xf0;
-           
-         break;
-     case 0xc0:   //1100,0000
-           d1_4byte[i]=0xff;
-          
-         break;  
-     default:
-         break;
-       }
-     
-       d=d<<2;
-      k2=d&0xc0;     //当i=0时 为D7,D6位 当i=1时 为D5,D4位
-
-     /****有4种可能，16级灰度,一个字节数据表示两个像素，一个像素对应一个字节的4位***/
-
-     switch(k2)
-       {
-     case 0x00:
-           d2_4byte[i]=0x00;
-           
-         break;
-     case 0x40:  // 0100,0000
-           d2_4byte[i]=0x0f;
-           
-         break; 
-     case 0x80:  //1000,0000
-           d2_4byte[i]=0xf0;
-         
-         break;
-     case 0xc0:   //1100,0000
-           d2_4byte[i]=0xff;
-          
-         break;  
-     default:
-         break;
-       }
-      
-      d=d<<2;                                //左移两位
-     // printf("%02x\n",d1_4byte[i] );
-     OLED_WR_Byte2(d1_4byte[i],OLED_DATA);       //写前2列
-     //usleep(1);
-     //printf("%02x\n",d2_4byte[i] );
-     OLED_WR_Byte2(d2_4byte[i],OLED_DATA);               //写后2列    共计4列
-     //usleep(1);
-   }
-
-}
 
 
 void OLED_INIT(void)
@@ -843,7 +739,7 @@ void Display_Number(unsigned char x,unsigned char y,const unsigned char *str)
         Con_4_byte2(0x00);
       }
       else{
-        Con_4_byte2(Nums[(str[i] - 0x30) * 256 + j]);
+        Con_4_byte(Nums[(str[i] - 0x30) * 256 + j]);
       }
       
     }
@@ -857,12 +753,15 @@ void Display_Bmp(unsigned char x,unsigned char y,const unsigned char *str)
 {
   int i,x1,j;
   int len;
+  unsigned char s[10] = {0};
   x1 = x / 4;
-  len = strlen(str);
+
+  strcpy(s,str);
+  len = strlen(s);
   for(i=0;i<len;i++)
   {
 //    if(str[i] != ' ')
-    Show_Pattern(str[i],x1,x1 + 7,y,63);
+    Show_Pattern(s[i],x1,x1 + 7,y,63);
     x1 +=8;
   }
 }

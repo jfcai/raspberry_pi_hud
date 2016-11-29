@@ -37,6 +37,7 @@
 char ANSC_MSG[4096] = {0};
 int CarSpeed = 0;
 int CarRpm = 0;
+unsigned char strLastSpeed[30] = {0};
 
 int getIP (void) {
     struct ifaddrs * ifAddrStruct=NULL;
@@ -77,9 +78,11 @@ void ShowOled(void)
     int ShowCount = 0;
     unsigned char str[30] = {0};
     unsigned char msg[4096] = {0};
+	int i = 0;
 
     Fill_RAM(0x00);
     Display_Str(200,28,"km/h",24);
+	strcpy(strLastSpeed,"0");
 
     while(1)
     {
@@ -103,25 +106,39 @@ void ShowOled(void)
                 Display_Str(200,28,"km/h",24);
             }
 
-            if(ShowCount > 1000){
+            if(ShowCount > 100){
                 Fill_RAM(0x00);
                 Display_Str(200,28,"km/h",24);
                 ShowCount = 0;
             }
 
-            sprintf(str,"%03d",curSpeed);
+            sprintf(str,"%3d",curSpeed);
             //printf("当前速度 %s km/h\n",str);
            // Display_Number(88,0,str);
            // usleep(510000);
-            Display_Str(120,28,str,24);       
-//           Display_Bmp(88,0,str);    
+		   int x1 = 14;
+		   for(i=0;i<strlen(str);i++){
+			 x1 += 8;
+			 if(str[i] == strLastSpeed[i]){
+				 continue;
+			 }
+
+             Show_Pattern(s[i],x1,x1 + 7,0,63);
+			 nanosleep(1000);
+		   }
+
+//          Display_Str(120,28,str,24);       
+//          Display_Bmp(88,0,str);    
             lastSpeed = curSpeed;
+			strcpy(strLastSpeed,str);
 
             count = 0;
             ShowCount ++;
 
             continue;
         }
+
+		continue;
 
         //printf("curSpeed=%d,lastSpeed=%d,count=%d\n",curSpeed,lastSpeed,count);
 
@@ -254,8 +271,8 @@ int main(int argc, char **argv)
     pthread_t id;
     pthread_create(&id,NULL,(void *)getCanSpeed,NULL);
 
-    pthread_t id2;
-    pthread_create(&id2,NULL,(void *)getNews,NULL);
+//    pthread_t id2;
+//    pthread_create(&id2,NULL,(void *)getNews,NULL);
 
     //开启蓝牙进程
     pthread_t id3;
