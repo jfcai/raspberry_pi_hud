@@ -37,105 +37,81 @@ int CarRpm = 0;
 char strLastSpeed[30] = {0};
 
 
-void ShowOled(void)
-{
-    int curSpeed = 0;
-    int lastSpeed = 1;
-    int count = 0;
-    int msgid = 0;
-    int ShowCount = 0;
-    char str[30] = {0};
-    //char msg[4096] = {0};
-	int i = 0;
-
+void ShowKM(void){
     Fill_RAM(0x00);
     Display_Str(200,28,"km/h",24);
-	strcpy(strLastSpeed,"0");
+}
 
+
+//显示车速
+//@curSpeed  当前车速
+//@lastSpeed 上次车速
+void ShowSpeed(int curSpeed,int lastSpeed){
+
+
+    //当前车速与上次车速一致，不重新显示
+    if(curSpeed == lastSpeed) return;
+
+    char strCurSpeed[10] = {0},strLastSpeed[10] = {0};
+    sprintf(strCurSpeed,"%3d",curSpeed);
+    sprintf(strLastSpeed,"%3d",lastSpeed);
+
+    int i = 0,x1 = 14;
+    for(i=0;i<3;i++){
+        x1 += 8;
+        if(strCurSpeed[i] == strLastSpeed[i]) continue;
+        Show_Pattern(strCurSpeed[i],x1,x1 + 7,0,63);
+    }
+}
+
+
+void ShowOled(void)
+{
+    int lastSpeed = 0;
+    int curSpeed = 0;
+    int ShowCount = 0;
+
+
+
+
+    ShowKM();
+    ShowSpeed(curSpeed,1);
     while(1)
     {
+
+        //检查是否有通知信息
         if(ANSC_MSG[0] != 0){
             Fill_RAM(0x00);
             Display_Str(0,0,ANSC_MSG,16);
             memset(ANSC_MSG,0,4096);
-            sleep(6);
-            msgid = 1;
+            sleep(8);                   //显示8秒
+            ShowKM();
         }
 
+
+        //显示车速信息
         curSpeed = CarSpeed;
         if(curSpeed != lastSpeed)
         {
 
-            //上次有显示内容，先清屏
-            if(msgid > 0)
-            {
-                Fill_RAM(0x00);
-                msgid = 0;
-                Display_Str(200,28,"km/h",24);
-            }
-
+#ifdef  DEBUG
             if(ShowCount > 100){
                 Fill_RAM(0x00);
                 Display_Str(200,28,"km/h",24);
+                ShowSpeed(curSpeed,999);
                 ShowCount = 0;
+            }else{
+                ShowCount ++;
             }
-
-            sprintf(str,"%3d",curSpeed);
-            //printf("当前速度 %s km/h\n",str);
-           // Display_Number(88,0,str);
-           // usleep(510000);
-		   int x1 = 14;
-		   for(i=0;i<strlen(str);i++){
-			 x1 += 8;
-			 if(str[i] == strLastSpeed[i]){
-				 continue;
-			 }
-
-             Show_Pattern(str[i],x1,x1 + 7,0,63);
-			 //nanosleep(1000);
-		   }
-
-//          Display_Str(120,28,str,24);       
-//          Display_Bmp(88,0,str);    
+#endif
+            ShowSpeed(curSpeed,lastSpeed);
             lastSpeed = curSpeed;
-			strcpy(strLastSpeed,str);
-
-            count = 0;
-            ShowCount ++;
-
-            continue;
         }
-
-		continue;
-
-        //printf("curSpeed=%d,lastSpeed=%d,count=%d\n",curSpeed,lastSpeed,count);
-
-
-        if(curSpeed == 0 && lastSpeed == 0 && count > 20 && count % 20 == 0) msgid = 0;
-
-        if(curSpeed == 0) count ++;
-
-        //当停车状态超过3秒，从信息库中读取一条信息并显示，显示后删除
-        // if(curSpeed == 0 && lastSpeed == 0 && msgid == 0 && count >= 20){
-        //     msgid = get_1_Msg(msg);
-        //     printf("%s\n",msg);
-        //     if(msgid > 0){
-        //         printf("显示内容:%s\n",msg);
-        //         //OLED_INIT();
-        //         Fill_RAM(0x00);
-        //         Display_Str(0,0,msg,16);
-        //         del_1_Msg(msgid);
-        //     }
-        // }
-
-        //count ++;
-
-        //printf("curSpeed=%d,lastSpeed=%d,count=%d\n",curSpeed,lastSpeed,count);
-        
-        usleep(500000);
     }
 }
 
+
+//从 CAN线中读车速
 void getCanSpeed(void){
     int i;
     while(1)
@@ -163,55 +139,26 @@ int main(int argc, char **argv)
       return 0;
     }
 
-    //if (!bcm2835_spi_begin())
-    //{
-    // printf("bcm2835_spi_begin failedg. Are you running as root??\n");
-    //  return 1;
-    //}
+    bcm2835_gpio_fsel(OLED_DC,    BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_fsel(OLED_RST,   BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_fsel(OLED_SCLK,  BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_fsel(OLED_SDIN,  BCM2835_GPIO_FSEL_OUTP);
 
-    //bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);      // The default
-    //bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);                   // The default
-    //bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_16); // The default
-    //bcm2835_spi_chipSelect(BCM2835_SPI_CS0);                      // The default
-    //bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);      // the default
 
-    //bcm2835_gpio_fsel(OLED_DC,    BCM2835_GPIO_FSEL_OUTP);
-    //bcm2835_gpio_fsel(OLED_RST,   BCM2835_GPIO_FSEL_OUTP);
     printf("初始化OLED屏...\n");
     OLED_INIT();
-    //Fill_RAM_DEALY(0xff,100000000);
-    //Fill_RAM_DEALY(0x00,100000000);
 
-    //Fill_RAM(0x00);
-    //Display_Str(0,0,"系统正在启动...",16);
-    //sleep(1);
-
-
-    //显示欢迎转而
-    //Fill_RAM(0x00);
-    //Display_Str(0,0,"正在启动,请稍候...",24);
-    //sleep(10);
-
-    //printf("读取IP地址...\n");
-    //getIP();
-    //sleep(5);
-    
-   // exit(0);
-    //创建读GPS信息进程
+    //创建读Can 车速信息进程
     pthread_t id;
     pthread_create(&id,NULL,(void *)getCanSpeed,NULL);
 
-//    pthread_t id2;
-//    pthread_create(&id2,NULL,(void *)getNews,NULL);
-
-    //开启蓝牙进程
+    //开启蓝牙通知进程
     pthread_t id3;
     pthread_create(&id3,NULL,(void *)getANCS,NULL);
 
     //显示内容
     ShowOled();
 
-    //bcm2835_spi_end();
     bcm2835_close();
     return 0;
 }

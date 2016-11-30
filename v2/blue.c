@@ -180,6 +180,7 @@ int getANCS(void)
                     //printf("收到字符串(%d):%s\n",nread,buff);
                     memset(msg,0,1024);
                     getContent(buff,nread,msg);
+                    strcat(buff2,"\n");
                     strcat(buff2,msg);
                     //printf("\n返回字符串:%s\n",buff2);
 
@@ -193,6 +194,7 @@ int getANCS(void)
                     if((nread = read(fd,buff,1024)) <= 0) continue;
                     memset(msg,0,1024);
                     getContent(buff,nread,msg);
+                    strcat(buff2,"\n");
                     strcat(buff2,msg);
                     //printf("\n返回字符串:%s\n",buff2);
 

@@ -186,15 +186,6 @@ void Con_4_byte(unsigned char DATA)
 
 void OLED_INIT(void)
 {
-  
-
-    
-
-
-    bcm2835_gpio_fsel(OLED_DC,    BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_fsel(OLED_RST,   BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_fsel(OLED_SCLK,  BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_fsel(OLED_SDIN,  BCM2835_GPIO_FSEL_OUTP);
 
     OLED_RST_Set();
     bcm2835_delay(100);
@@ -202,16 +193,13 @@ void OLED_INIT(void)
     bcm2835_delay(100);
     OLED_RST_Set();
 
-   // OLED_WR_Byte(0xAE,OLED_CMD); // Display Off
-  //  bcm2835_delay(100);
- //   OLED_WR_Byte(0xAF,OLED_CMD); // Display On
     
     OLED_WR_Byte(0xFD,OLED_CMD); // Set Command Lock
     OLED_WR_Byte(0x12,OLED_DATA); //
     
-    OLED_WR_Byte(0xB3,OLED_CMD); // Set Clock as 80 Frames/Sec
- //   OLED_WR_Byte(0x91,OLED_DATA); //  
+    OLED_WR_Byte(0xB3,OLED_CMD); // Set Clock as 80 Frames/Sec  原为0x91
     OLED_WR_Byte(0xD0,OLED_DATA);
+
     OLED_WR_Byte(0xCA,OLED_CMD); // Set Multiplex Ratio
     OLED_WR_Byte(0x3F,OLED_DATA); // 1/64 Duty (0x0F~0x5F)
    
@@ -222,30 +210,30 @@ void OLED_INIT(void)
     OLED_WR_Byte(0x00,OLED_DATA); //    
 
     
-    OLED_WR_Byte(0xA0,OLED_CMD); //Set Column Address 0 Mapped to SEG0 
-    OLED_WR_Byte(0x14,OLED_DATA);       //   Default => 0x40
-                                        //     Horizontal Address Increment
-                        //     Column Address 0 Mapped to SEG0
-                        //     Disable Nibble Remap
-                        //     Scan from COM0 to COM[N-1]
-                        //     Disable COM Split Odd Even
-    OLED_WR_Byte(0x11,OLED_DATA);       //    Default => 0x01 (Disable Dual COM Mode)
+    OLED_WR_Byte(0xA0,OLED_CMD);  //Set Column Address 0 Mapped to SEG0 
+    OLED_WR_Byte(0x14,OLED_DATA); //   Default => 0x40
+                                  //     Horizontal Address Increment
+                                  //     Column Address 0 Mapped to SEG0
+                                  //     Disable Nibble Remap
+                                  //     Scan from COM0 to COM[N-1]
+                                  //     Disable COM Split Odd Even
+    OLED_WR_Byte(0x11,OLED_DATA); //    Default => 0x01 (Disable Dual COM Mode)
 
     
-    OLED_WR_Byte(0xB5,OLED_CMD); //  Disable GPIO Pins Input
+    OLED_WR_Byte(0xB5,OLED_CMD);  //  Disable GPIO Pins Input
     OLED_WR_Byte(0x00,OLED_DATA); //    
     
-    OLED_WR_Byte(0xAB,OLED_CMD); //   Enable Internal VDD Regulator
+    OLED_WR_Byte(0xAB,OLED_CMD);  //   Enable Internal VDD Regulator
     OLED_WR_Byte(0x01,OLED_DATA); //
 
-    OLED_WR_Byte(0xB4,OLED_CMD); //  Display Enhancement  
+    OLED_WR_Byte(0xB4,OLED_CMD);  //  Display Enhancement  
     OLED_WR_Byte(0xA0,OLED_DATA); // Enable External VSL
     OLED_WR_Byte(0xF8,OLED_DATA); // Enhance Low Gray Scale Display Quality
 
-    OLED_WR_Byte(0xC1,OLED_CMD); //  Set Contrast Current 
+    OLED_WR_Byte(0xC1,OLED_CMD);  //  Set Contrast Current 
     OLED_WR_Byte(0x7F,OLED_DATA); //  Default => 0x7F
 
-    OLED_WR_Byte(0xC7,OLED_CMD); //  Master Contrast Current Control 
+    OLED_WR_Byte(0xC7,OLED_CMD);  //  Master Contrast Current Control 
     OLED_WR_Byte(Brightness,OLED_DATA); //  Default => 0x0f (Maximum)
 
     OLED_WR_Byte(0xB9,OLED_CMD);
@@ -605,27 +593,27 @@ void Display_Str(unsigned char x,unsigned char y,char *str,unsigned char font_si
 
     if(gb2312[i] > 0xA0)
     {
-      if(x > (255 - font_size))
+      if(x > (256 - font_size))
       {
         x = 0;
         y += font_size;
       }
-#ifdef DEBUG
-  //    printf("x=%d,y=%d,str=%s\n",x,y,&gb2312[i]);
-#endif
       Display_1_Chinese(x,y,&gb2312[i],font_size);
       i ++;
       x += font_size;
     }else
     {
-      if(x > (255 - font_size / 2))
-      {
+      if(x > (256 - font_size / 2)){
         x = 0;
         y += font_size;
       }
-#ifdef DEBUG
- //     printf("x=%d,y=%d,str=%s\n",x,y,&gb2312[i]);
-#endif
+
+      if(gb2312[i] == '\n'){
+        x = 0;
+        y += font_size;
+        continue;
+      }
+
       Display_1_Asc(x,y,gb2312[i],font_size);
       x += font_size / 2;
     }

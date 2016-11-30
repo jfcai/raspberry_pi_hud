@@ -9,7 +9,7 @@
 #define XLevelH   		0x10
 #define Max_Column  	0x3F      // 256/4-1
 #define Max_Row   		0x3F      // 64-1
-#define Brightness  	0xFF
+#define Brightness  	0x0F
 #define Shift   		0x1C
 
 /*-----------------OLED端口定义 4线SPI---------------- */ 					   
