@@ -12,6 +12,7 @@
 #define Brightness  	0x0F
 #define Shift   		0x1C
 
+
 /*-----------------OLED端口定义 4线SPI---------------- */ 					   
 /* 采用IO口模拟SPI通讯方式驱动oled模块  */
 #define OLED_DC			RPI_V2_GPIO_P1_16	// Data/Command Control

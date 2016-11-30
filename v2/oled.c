@@ -15,7 +15,6 @@
 #define DOTS_BYTES(font) (FONT_WIDTH[font] * FONT_HEIGHT[font] / 8)
 #define HZ_INDEX(hz)    ((hz[0] - 0xa1) * 94 + (hz[1] - 0xa1))
 
-
 //static int FONT_WIDTH[6]={16,24,24,6,8,12};
 //static int FONT_HEIGHT[6]={16,24,24,12,16,24};
 
