@@ -1,5 +1,5 @@
-CC:= gcc
-
+#CC:= gcc
+CC := arm-none-linux-gnueabi-gcc
 SRC += ./main.c
 SRC += ./blue.c
 SRC += ./can.c
