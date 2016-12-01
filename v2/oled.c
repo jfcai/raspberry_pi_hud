@@ -148,6 +148,7 @@ unsigned char i,j;
             OLED_WR_Byte(Data,OLED_DATA); 
         }
     }
+   OLED_INIT();
 }
 
 
@@ -187,9 +188,9 @@ void OLED_INIT(void)
 {
 
     OLED_RST_Set();
-    bcm2835_delay(100);
+    bcm2835_delay(500);
     OLED_RST_Clr();
-    bcm2835_delay(100);
+    bcm2835_delay(500);
     OLED_RST_Set();
 
     
@@ -235,24 +236,24 @@ void OLED_INIT(void)
     OLED_WR_Byte(0xC7,OLED_CMD);  //  Master Contrast Current Control 
     OLED_WR_Byte(Brightness,OLED_DATA); //  Default => 0x0f (Maximum)
 
-    OLED_WR_Byte(0xB9,OLED_CMD);
- //   OLED_WR_Byte(0xB8,OLED_CMD); //     // Set Gray Scale Table 
- //   OLED_WR_Byte(0x0C,OLED_DATA); //
-//    OLED_WR_Byte(0x18,OLED_DATA); //
-//    OLED_WR_Byte(0x24,OLED_DATA); //
-//    OLED_WR_Byte(0x30,OLED_DATA); //
-//    OLED_WR_Byte(0x3C,OLED_DATA); //
-//    OLED_WR_Byte(0x48,OLED_DATA); //
-//    OLED_WR_Byte(0x54,OLED_DATA); //
-//    OLED_WR_Byte(0x60,OLED_DATA); //
-//    OLED_WR_Byte(0x6C,OLED_DATA); //
-//    OLED_WR_Byte(0x78,OLED_DATA); //
-//    OLED_WR_Byte(0x84,OLED_DATA); //
-//    OLED_WR_Byte(0x90,OLED_DATA); //
-//    OLED_WR_Byte(0x9C,OLED_DATA); //
-//    OLED_WR_Byte(0xA8,OLED_DATA); //
-//    OLED_WR_Byte(0xB4,OLED_DATA); //
-//    OLED_WR_Byte(0x00,OLED_CMD);    // Enable Gray Scale Table
+ //   OLED_WR_Byte(0xB9,OLED_CMD);
+    OLED_WR_Byte(0xB8,OLED_CMD); //     // Set Gray Scale Table 
+    OLED_WR_Byte(0x0C,OLED_DATA); //
+    OLED_WR_Byte(0x18,OLED_DATA); //
+    OLED_WR_Byte(0x24,OLED_DATA); //
+    OLED_WR_Byte(0x30,OLED_DATA); //
+    OLED_WR_Byte(0x3C,OLED_DATA); //
+    OLED_WR_Byte(0x48,OLED_DATA); //
+    OLED_WR_Byte(0x54,OLED_DATA); //
+    OLED_WR_Byte(0x60,OLED_DATA); //
+    OLED_WR_Byte(0x6C,OLED_DATA); //
+    OLED_WR_Byte(0x78,OLED_DATA); //
+    OLED_WR_Byte(0x84,OLED_DATA); //
+    OLED_WR_Byte(0x90,OLED_DATA); //
+    OLED_WR_Byte(0x9C,OLED_DATA); //
+    OLED_WR_Byte(0xA8,OLED_DATA); //
+    OLED_WR_Byte(0xB4,OLED_DATA); //
+    OLED_WR_Byte(0x00,OLED_CMD);    // Enable Gray Scale Table
 
     
     OLED_WR_Byte(0xB1,OLED_CMD); //   Set Phase 1 as 5 Clocks & Phase 2 as 14 Clocks

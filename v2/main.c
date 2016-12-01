@@ -31,6 +31,10 @@
 #include "blue.h"
 #include "can.h"
 
+#ifdef BCM2835_CORE_CLK_HZ
+#undef BCM2835_CORE_CLK_HZ
+#define BCM2835_CORE_CLK_HZ 80000000
+#endif
 
 char ANSC_MSG[4096] = {0};
 int CarSpeed = 0;
@@ -106,6 +110,7 @@ void ShowOled(void)
             }
 #endif
             ShowSpeed(curSpeed,lastSpeed);
+            usleep(50000);
             lastSpeed = curSpeed;
         }
     }
@@ -145,10 +150,12 @@ int main(int argc, char **argv)
     bcm2835_gpio_fsel(OLED_SCLK,  BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_fsel(OLED_SDIN,  BCM2835_GPIO_FSEL_OUTP);
 
-
+    sleep(1);
     printf("初始化OLED屏...\n");
     OLED_INIT();
-
+    sleep(1);
+    Display_Str(0,0,"正在启动...",24);
+    sleep(2);
     //创建读Can 车速信息进程
     pthread_t id;
     pthread_create(&id,NULL,(void *)getCanSpeed,NULL);
