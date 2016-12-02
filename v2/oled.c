@@ -7,7 +7,6 @@
 #include <string.h>  
 #include <sys/stat.h>
 #include <unistd.h>
-#include <time.h>
 #include "Number32X64.h"
 
 
@@ -84,8 +83,6 @@ void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
     OLED_DC_Set();
   else 
     OLED_DC_Clr();   
- // OLED_SCLK_Set();
-//  nanosleep(&ts, NULL);
   for(i=0;i<8;i++)
   {       
     OLED_SCLK_Clr();
@@ -101,10 +98,17 @@ void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
     OLED_SCLK_Set();
 
     //等待设备接收数据
+<<<<<<< HEAD
    dat<<=1;   
   }
 // OLED_SCLK_Set();
 // OLED_DC_Set();  
+=======
+dat<<=1;   
+  }
+ //OLED_SCLK_Set();
+ //OLED_DC_Set();  
+>>>>>>> 7b131b8a4ed3641ccb1c2cf97b810cb55363cf2e
 }
 
 

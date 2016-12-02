@@ -14,8 +14,8 @@
 #include "can.h"
 
 #ifdef BCM2835_CORE_CLK_HZ
-#undef BCM2835_CORE_CLK_HZ
-#define BCM2835_CORE_CLK_HZ 8000000
+  #undef BCM2835_CORE_CLK_HZ
+  #define BCM2835_CORE_CLK_HZ 8000000
 #endif
 
 char ANSC_MSG[4096] = {0};
