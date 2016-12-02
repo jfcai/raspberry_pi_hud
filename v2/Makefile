@@ -1,5 +1,5 @@
-#CC:= arm-none-linux-gnueabi-gcc
-CC := gcc
+CC:= arm-none-linux-gnueabi-gcc
+#CC := gcc
 SRC += ./main.c
 SRC += ./blue.c
 SRC += ./can.c
@@ -11,7 +11,7 @@ INC := -I /Volumes/pi/arm-none-linux-gnueabi/include
 
 LIB := -lbcm2835
 LIB += -lpthread
-LIB += -liconv
+#LIB += -liconv
 LIB += -L /Volumes/pi/arm-none-linux-gnueabi/lib
 
 TARGET = ./hud_v2

@@ -8,14 +8,13 @@
 #include <ifaddrs.h>
 #include <netinet/in.h> 
 #include <string.h> 
-#include <arpa/inet.h>
 #include "oled.h"
 #include "blue.h"
 #include "can.h"
 
 #ifdef BCM2835_CORE_CLK_HZ
   #undef BCM2835_CORE_CLK_HZ
-  #define BCM2835_CORE_CLK_HZ 8000000
+  #define BCM2835_CORE_CLK_HZ 5000000
 #endif
 
 char ANSC_MSG[4096] = {0};
@@ -34,7 +33,6 @@ void ShowKM(void){
 //@curSpeed  当前车速
 //@lastSpeed 上次车速
 void ShowSpeed(int curSpeed,int lastSpeed){
-
 
     //当前车速与上次车速一致，不重新显示
     if(curSpeed == lastSpeed) return;
@@ -73,6 +71,7 @@ void ShowOled(void)
             memset(ANSC_MSG,0,4096);
             sleep(8);                   //显示8秒
             ShowKM();
+			ShowSpeed(curSpeed,999);
         }
 
 
@@ -131,13 +130,22 @@ int main(int argc, char **argv)
     bcm2835_gpio_fsel(OLED_SCLK,  BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_fsel(OLED_SDIN,  BCM2835_GPIO_FSEL_OUTP);
 
-    sleep(1);
+    //sleep(1);
     printf("初始化OLED屏...\n");
     OLED_INIT();
-    sleep(1);
+	Fill_RAM(0x00);
     Display_Str(0,0,"正在启动...",24);
     sleep(2);
-    //创建读Can 车速信息进程
+	char str[100] = {0};
+	int i;
+	for(i=0;i<1000;i++){
+	  sprintf(str,"正在测试(%3d)...",i);
+	  Display_Str(0,0,str,24);
+	}
+	Fill_RAM(0x00);
+
+    
+	//创建读Can 车速信息进程
     pthread_t id;
     pthread_create(&id,NULL,(void *)getCanSpeed,NULL);
 

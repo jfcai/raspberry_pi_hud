@@ -17,7 +17,7 @@
 //static int FONT_WIDTH[6]={16,24,24,6,8,12};
 //static int FONT_HEIGHT[6]={16,24,24,12,16,24};
 
-unsigned char *DOTS[6];
+//unsigned char *DOTS[6];
 
 
 void OLED_INIT(void);
@@ -25,13 +25,11 @@ void OLED_INIT(void);
 
 /**
  * 转换字符编码
- * @param
- * @param
- * @param
- * @param
- * @param
- * @param
- * @return
+ * @from_charset
+ * @to_charset
+ * @inbuf
+ * @inlen
+ * @return int
  */
 int code_convert(char *from_charset, char *to_charset, char *inbuf, size_t inlen,  
         char *outbuf, size_t outlen) {  
@@ -86,19 +84,17 @@ void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
   for(i=0;i<8;i++)
   {       
     OLED_SCLK_Clr();
-    if(dat&0x80){
+    if(dat&0x80)
       OLED_SDIN_Set();
-    }
-    else {
+    else 
       OLED_SDIN_Clr();
-    }
        
     //等待数据稳定
-  //拉高时钟，让设备接收数据
+    //拉高时钟，让设备接收数据
     OLED_SCLK_Set();
 
     //等待设备接收数据
-dat<<=1;   
+    dat<<=1;   
   }
  //OLED_SCLK_Set();
  //OLED_DC_Set();  
