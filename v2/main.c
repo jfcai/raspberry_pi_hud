@@ -7,10 +7,13 @@
 #include <sys/types.h>
 #include <ifaddrs.h>
 #include <netinet/in.h> 
+#include <signal.h> 
+#include <sys/time.h>
 #include <string.h> 
 #include "oled.h"
 #include "blue.h"
 #include "can.h"
+#include "db.h"
 
 //#ifdef BCM2835_CORE_CLK_HZ
 //  #undef BCM2835_CORE_CLK_HZ
@@ -23,6 +26,20 @@ int CarRpm = 0;
 char strLastSpeed[30] = {0};
 
 
+//显示停车时的信息
+void ShowStopInfo(int signo){
+    char str[1024] = {0};
+    int msgID = 0;
+
+    if (CarSpeed == 0){
+        if((msgID = get_1_Msg(str)) > 0){
+            Fill_RAM(0x00);
+            Display_Str(0,0,str,16);
+        }  
+    }
+}
+
+//显示单位
 void ShowKM(void){
     Fill_RAM(0x00);
     Display_Str(200,28,"km/h",24);
@@ -49,20 +66,38 @@ void ShowSpeed(int curSpeed,int lastSpeed){
     }
 }
 
+void SetTimer(int sec){
+    struct itimerval tick;
+    memset(&tick, 0, sizeof(tick));
+
+    //Timeout to run first time
+    tick.it_value.tv_sec = sec;
+    tick.it_value.tv_usec = 0;
+
+    //After first, the Interval time for clock
+    tick.it_interval.tv_sec = 0;
+    tick.it_interval.tv_usec = 0;
+
+    if(setitimer(ITIMER_REAL, &tick, NULL) < 0)
+        printf("Set timer failed!\n");
+
+}
 
 void ShowOled(void)
 {
     int lastSpeed = 0;
     int curSpeed = 0;
+
+#ifdef DEBUG
     int ShowCount = 0;
-
-
+#endif
 
 
     ShowKM();
     ShowSpeed(curSpeed,1);
     while(1)
     {
+        curSpeed = CarSpeed;
 
         //检查是否有通知信息
         if(ANSC_MSG[0] != 0){
@@ -76,7 +111,6 @@ void ShowOled(void)
 
 
         //显示车速信息
-        curSpeed = CarSpeed;
         if(curSpeed != lastSpeed)
         {
 
@@ -92,6 +126,18 @@ void ShowOled(void)
 #endif
             ShowSpeed(curSpeed,lastSpeed);
             lastSpeed = curSpeed;
+            continue;
+        }
+
+
+        //检查是否停车状态,如果为停车状态则启动定时器
+        if(curSpeed == 0){
+            struct itimerval tick;
+            memset(&tick, 0, sizeof(tick));
+            getitimer(ITIMER_REAL,&tick);
+            if(tick.it_value.tv_sec == 0){
+                SetTimer(6);
+            }
         }
     }
 }
@@ -143,6 +189,9 @@ int main(int argc, char **argv)
     //开启蓝牙通知进程
     pthread_t id3;
     pthread_create(&id3,NULL,(void *)getANCS,NULL);
+
+    //注册信号
+    signal(SIGALRM, ShowStopInfo);
 
     //显示内容
     ShowOled();

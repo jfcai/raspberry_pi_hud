@@ -520,7 +520,7 @@ void Display_1_Asc(unsigned char x,unsigned char y, unsigned char str,unsigned c
 
 
 
-void Display_Str(unsigned char x,unsigned char y,char *str,unsigned char font_size)
+void Display_Str(int x,int y,char *str,unsigned char font_size)
 {
   unsigned char i,len;
   char gb2312[200] = {0};
