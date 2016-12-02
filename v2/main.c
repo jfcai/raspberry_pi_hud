@@ -12,10 +12,10 @@
 #include "blue.h"
 #include "can.h"
 
-#ifdef BCM2835_CORE_CLK_HZ
-  #undef BCM2835_CORE_CLK_HZ
-  #define BCM2835_CORE_CLK_HZ 5000000
-#endif
+//#ifdef BCM2835_CORE_CLK_HZ
+//  #undef BCM2835_CORE_CLK_HZ
+//  #define BCM2835_CORE_CLK_HZ 1000000
+//#endif
 
 char ANSC_MSG[4096] = {0};
 int CarSpeed = 0;
@@ -138,9 +138,10 @@ int main(int argc, char **argv)
     sleep(2);
 	char str[100] = {0};
 	int i;
-	for(i=0;i<1000;i++){
+	for(i=0;i<10;i++){
 	  sprintf(str,"正在测试(%3d)...",i);
 	  Display_Str(0,0,str,24);
+	  bcm2835_delay(50);
 	}
 	Fill_RAM(0x00);
 

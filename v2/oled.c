@@ -76,11 +76,14 @@ int g2u(char *inbuf, size_t inlen, char *outbuf, size_t outlen) {
 void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
 { 
   unsigned char i;   
-
+  struct timespec ts;
+  ts.tv_sec = 0;
+  ts.tv_nsec = 1;
   if(cmd)
     OLED_DC_Set();
   else 
     OLED_DC_Clr();   
+  nanosleep(10);
   for(i=0;i<8;i++)
   {       
     OLED_SCLK_Clr();
@@ -91,9 +94,11 @@ void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
        
     //等待数据稳定
     //拉高时钟，让设备接收数据
+    //nanosleep(1);
     OLED_SCLK_Set();
 
     //等待设备接收数据
+    nanosleep(1);
     dat<<=1;   
   }
  //OLED_SCLK_Set();

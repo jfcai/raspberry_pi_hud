@@ -16,7 +16,7 @@ LIB += -L /Volumes/pi/arm-none-linux-gnueabi/lib
 
 TARGET = ./hud_v2
 
-DEFS = -D DEBUG
+#DEFS = -D DEBUG
 #DEFS += -D HUD
 all:$(OBJS)
 	$(CC) $(OBJS) $(DEFS) $(LIB) -o $(TARGET)
