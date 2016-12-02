@@ -11,9 +11,8 @@
 
 
 
-//#define DOTS_BYTES(font) (FONT_WIDTH[font] * FONT_HEIGHT[font] / 8)
+#define DOTS_BYTES(font) (FONT_WIDTH[font] * FONT_HEIGHT[font] / 8)
 #define HZ_INDEX(hz)    ((hz[0] - 0xa1) * 94 + (hz[1] - 0xa1))
-
 
 //static int FONT_WIDTH[6]={16,24,24,6,8,12};
 //static int FONT_HEIGHT[6]={16,24,24,12,16,24};
@@ -26,13 +25,11 @@ void OLED_INIT(void);
 
 /**
  * 转换字符编码
- * @param
- * @param
- * @param
- * @param
- * @param
- * @param
- * @return
+ * @from_charset
+ * @to_charset
+ * @inbuf
+ * @inlen
+ * @return int
  */
 int code_convert(char *from_charset, char *to_charset, char *inbuf, size_t inlen,  
         char *outbuf, size_t outlen) {  
@@ -77,54 +74,33 @@ int g2u(char *inbuf, size_t inlen, char *outbuf, size_t outlen) {
 
 
 void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
-{
-  unsigned char i;       
+{ 
+  unsigned char i;   
+
   if(cmd)
     OLED_DC_Set();
   else 
     OLED_DC_Clr();   
- // OLED_SCLK_Set();
-  nanosleep(10);
-
   for(i=0;i<8;i++)
   {       
     OLED_SCLK_Clr();
-    if(dat&0x80){
+    if(dat&0x80)
       OLED_SDIN_Set();
-    }
-    else {
+    else 
       OLED_SDIN_Clr();
-    }
        
     //等待数据稳定
-   // nanosleep(1);
     //拉高时钟，让设备接收数据
     OLED_SCLK_Set();
 
     //等待设备接收数据
-   // nanosleep(1);
     dat<<=1;   
   }
- OLED_SCLK_Set();
- OLED_DC_Set();  
-//nanosleep(1);
+ //OLED_SCLK_Set();
+ //OLED_DC_Set();  
 }
 
 
-
-/*
-void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
-{
-    if(cmd)
-      bcm2835_gpio_set(OLED_DC);
-    else 
-      bcm2835_gpio_clr(OLED_DC);
-    bcm2835_spi_transfer(dat);
-    bcm2835_gpio_set(OLED_DC);
-    //bcm2835_spi_writenb((char *)dat,1);
-}
-
-*/
 
 void Set_Column_Address(unsigned char a, unsigned char b)
 {
@@ -144,7 +120,6 @@ void Set_Row_Address(unsigned char a, unsigned char b)
 
 void Set_Write_RAM()
 {
- 
     OLED_WR_Byte(0x5C,OLED_CMD);            // Enable MCU to Write into RAM
 }
 
@@ -155,13 +130,9 @@ void Set_Write_RAM()
 void Fill_RAM(unsigned char Data)
 {
 unsigned char i,j;
-
-
     Set_Column_Address(0x00,0x77);
     Set_Row_Address(0x00,0x7f);
     Set_Write_RAM();
-
-
     for(i=0;i<128;i++)
     {
         for(j=0;j<120;j++)
@@ -170,104 +141,36 @@ unsigned char i,j;
             OLED_WR_Byte(Data,OLED_DATA); 
         }
     }
-    
-    OLED_INIT();
-
+   OLED_INIT();
 }
 
 
-void Fill_RAM_DEALY(unsigned char Data,unsigned long s)
-{
-unsigned char i,j;
 
-    Set_Column_Address(0x00,0x77);
-    Set_Row_Address(0x00,0x7F);
-    Set_Write_RAM();
-
-    for(i=0;i<128;i++)
-    {
-        for(j=0;j<120;j++)
-        {
-            OLED_WR_Byte(Data,OLED_DATA);
-            OLED_WR_Byte(Data,OLED_DATA); 
-            nanosleep(s);
-        }
-    }
+unsigned char GetByte(unsigned char d){
+  switch(d){
+    case 0x00:
+      return 0x00;
+    case 0x40:
+      return 0x0f;
+    case 0x80:
+      return 0xf0;
+    case 0xc0:
+      return 0xff;
+    default:
+      return 0x00;
+  }
 }
-
 
 void Con_4_byte(unsigned char DATA)
 {
-   unsigned char d1_4byte[4],d2_4byte[4];
-   unsigned char i;
-   unsigned char d,k1,k2;
-   d=DATA;
+  int i;
+  unsigned char d;
+  d=DATA;
  
-  for(i=0;i<2;i++)   // 一两位的方式写入  2*4=8位
-   {
-     k1=d&0xc0;     //当i=0时 为D7,D6位 当i=1时 为D5,D4位
-
-     /****有4种可能，16级灰度,一个字节数据表示两个像素，一个像素对应一个字节的4位***/
-
-     switch(k1)
-       {
-     case 0x00:
-           d1_4byte[i]=0x00;
-           
-         break;
-     case 0x40:  // 0100,0000
-           d1_4byte[i]=0x0f;
-           
-         break; 
-     case 0x80:  //1000,0000
-           d1_4byte[i]=0xf0;
-           
-         break;
-     case 0xc0:   //1100,0000
-           d1_4byte[i]=0xff;
-          
-         break;  
-     default:
-         break;
-       }
-     
-       d=d<<2;
-      k2=d&0xc0;     //当i=0时 为D7,D6位 当i=1时 为D5,D4位
-
-     /****有4种可能，16级灰度,一个字节数据表示两个像素，一个像素对应一个字节的4位***/
-
-     switch(k2)
-       {
-     case 0x00:
-           d2_4byte[i]=0x00;
-           
-         break;
-     case 0x40:  // 0100,0000
-           d2_4byte[i]=0x0f;
-           
-         break; 
-     case 0x80:  //1000,0000
-           d2_4byte[i]=0xf0;
-         
-         break;
-     case 0xc0:   //1100,0000
-           d2_4byte[i]=0xff;
-          
-         break;  
-     default:
-         break;
-       }
-      
-      d=d<<2;                                //左移两位
-     // printf("%02x\n",d1_4byte[i] );
-
-     OLED_WR_Byte(d1_4byte[i],OLED_DATA);       //写前2列
-     //nanosleep(20000);
-     //printf("%02x\n",d2_4byte[i] );
-     OLED_WR_Byte(d2_4byte[i],OLED_DATA);               //写后2列    共计4列
-     //nanosleep(20000);
-   }
-
+  for(i=0;i<4;i++){
+    OLED_WR_Byte(GetByte(d&0xc0),OLED_DATA);
+    d = d << 2;
+  }
 }
 
 
@@ -276,31 +179,19 @@ void Con_4_byte(unsigned char DATA)
 
 void OLED_INIT(void)
 {
-  
-
-    
-
-
-    bcm2835_gpio_fsel(OLED_DC,    BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_fsel(OLED_RST,   BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_fsel(OLED_SCLK,  BCM2835_GPIO_FSEL_OUTP);
-    bcm2835_gpio_fsel(OLED_SDIN,  BCM2835_GPIO_FSEL_OUTP);
 
     OLED_RST_Set();
-    bcm2835_delay(100);
+    bcm2835_delay(500);
     OLED_RST_Clr();
-    bcm2835_delay(100);
+    bcm2835_delay(500);
     OLED_RST_Set();
 
-   // OLED_WR_Byte(0xAE,OLED_CMD); // Display Off
-  //  bcm2835_delay(100);
- //   OLED_WR_Byte(0xAF,OLED_CMD); // Display On
     
     OLED_WR_Byte(0xFD,OLED_CMD); // Set Command Lock
     OLED_WR_Byte(0x12,OLED_DATA); //
     
-    OLED_WR_Byte(0xB3,OLED_CMD); // Set Clock as 80 Frames/Sec
-    OLED_WR_Byte(0x91,OLED_DATA); //  
+    OLED_WR_Byte(0xB3,OLED_CMD); // Set Clock as 80 Frames/Sec  原为0x91
+    OLED_WR_Byte(0xD0,OLED_DATA);
 
     OLED_WR_Byte(0xCA,OLED_CMD); // Set Multiplex Ratio
     OLED_WR_Byte(0x3F,OLED_DATA); // 1/64 Duty (0x0F~0x5F)
@@ -312,32 +203,33 @@ void OLED_INIT(void)
     OLED_WR_Byte(0x00,OLED_DATA); //    
 
     
-    OLED_WR_Byte(0xA0,OLED_CMD); //Set Column Address 0 Mapped to SEG0 
-    OLED_WR_Byte(0x14,OLED_DATA);       //   Default => 0x40
-                                        //     Horizontal Address Increment
-                        //     Column Address 0 Mapped to SEG0
-                        //     Disable Nibble Remap
-                        //     Scan from COM0 to COM[N-1]
-                        //     Disable COM Split Odd Even
-    OLED_WR_Byte(0x11,OLED_DATA);       //    Default => 0x01 (Disable Dual COM Mode)
+    OLED_WR_Byte(0xA0,OLED_CMD);  //Set Column Address 0 Mapped to SEG0 
+    OLED_WR_Byte(0x14,OLED_DATA); //   Default => 0x40
+                                  //     Horizontal Address Increment
+                                  //     Column Address 0 Mapped to SEG0
+                                  //     Disable Nibble Remap
+                                  //     Scan from COM0 to COM[N-1]
+                                  //     Disable COM Split Odd Even
+    OLED_WR_Byte(0x11,OLED_DATA); //    Default => 0x01 (Disable Dual COM Mode)
 
     
-    OLED_WR_Byte(0xB5,OLED_CMD); //  Disable GPIO Pins Input
+    OLED_WR_Byte(0xB5,OLED_CMD);  //  Disable GPIO Pins Input
     OLED_WR_Byte(0x00,OLED_DATA); //    
     
-    OLED_WR_Byte(0xAB,OLED_CMD); //   Enable Internal VDD Regulator
+    OLED_WR_Byte(0xAB,OLED_CMD);  //   Enable Internal VDD Regulator
     OLED_WR_Byte(0x01,OLED_DATA); //
 
-    OLED_WR_Byte(0xB4,OLED_CMD); //  Display Enhancement  
+    OLED_WR_Byte(0xB4,OLED_CMD);  //  Display Enhancement  
     OLED_WR_Byte(0xA0,OLED_DATA); // Enable External VSL
     OLED_WR_Byte(0xF8,OLED_DATA); // Enhance Low Gray Scale Display Quality
 
-    OLED_WR_Byte(0xC1,OLED_CMD); //  Set Contrast Current 
-    OLED_WR_Byte(0xEF,OLED_DATA); //  Default => 0x7F
+    OLED_WR_Byte(0xC1,OLED_CMD);  //  Set Contrast Current 
+    OLED_WR_Byte(0x7F,OLED_DATA); //  Default => 0x7F
 
-    OLED_WR_Byte(0xC7,OLED_CMD); //  Master Contrast Current Control 
+    OLED_WR_Byte(0xC7,OLED_CMD);  //  Master Contrast Current Control 
     OLED_WR_Byte(Brightness,OLED_DATA); //  Default => 0x0f (Maximum)
 
+ //   OLED_WR_Byte(0xB9,OLED_CMD);
     OLED_WR_Byte(0xB8,OLED_CMD); //     // Set Gray Scale Table 
     OLED_WR_Byte(0x0C,OLED_DATA); //
     OLED_WR_Byte(0x18,OLED_DATA); //
@@ -455,11 +347,11 @@ void Asc24_48(unsigned char x,unsigned char y,unsigned char ch[])
 //   x: Start Column  开始列 范围 0~（256-16）
 //   y: Start Row   开始行 0~63 
 ***************************************************************/
-void HZ24_24( unsigned char x, unsigned char y, unsigned char *str)
+void HZ24_24( unsigned char x, unsigned char y, char *str)
 {
   unsigned char x1,i ;
   unsigned char dots[72];
-  unsigned char buf[2] = {0};
+  char buf[2] = {0};
   FILE* hzk;
 
   x1=x/4; 
@@ -510,29 +402,33 @@ void HZ24_24( unsigned char x, unsigned char y, unsigned char *str)
 void Show_Pattern(unsigned char ch, unsigned char a, unsigned char b, unsigned char c, unsigned char d)
 {
        
-unsigned char *Src_Pointer;
-unsigned char i,j;
+  int i,j;
  
   //取模时候像素正序  （不能反序与2.7不同）
   if(ch == ' '){
-    Src_Pointer=&gImage[10 * 1024];
+    j = 10 * 1024;
   }
   else{
-    Src_Pointer=&gImage[(ch - 0x30) * 1024];
+    j = (ch - 0x30) * 1024;
   }
   Set_Column_Address(Shift+a,Shift+b);
   Set_Row_Address(c,d);
   Set_Write_RAM();
-  for(i=0;i<(d-c+1);i++)
+
+  for(i = 0;i < 1024;i++)
   {
-    for(j=0;j<(b-a+1);j++)
-    {
-      OLED_WR_Byte(*Src_Pointer,OLED_DATA);
-      Src_Pointer++;
-      OLED_WR_Byte(*Src_Pointer,OLED_DATA);
-      Src_Pointer++;
-    }
+    OLED_WR_Byte(gImage[j+i],OLED_DATA);
   }
+  // for(i=0;i<(d-c+1);i++)
+  // {
+  //   for(j=0;j<(b-a+1);j++)
+  //   {
+  //     OLED_WR_Byte(*Src_Pointer,OLED_DATA);
+  //     Src_Pointer++;
+  //     OLED_WR_Byte(*Src_Pointer,OLED_DATA);
+  //     Src_Pointer++;
+  //   }
+  // }
 
  }
 
@@ -546,11 +442,11 @@ unsigned char i,j;
  * @str: 要显示的字符
  * @font_size: 16 或 24
  */
-void Display_1_Chinese(unsigned char x,unsigned char y,unsigned char *str,unsigned char font_size)
+void Display_1_Chinese(unsigned char x,unsigned char y,char *str,unsigned char font_size)
 {
-  unsigned char x1,i,j;
+  unsigned char x1,i;
   unsigned char dots[72] = {0};
-  unsigned char fontPath[100] = {0};
+  char fontPath[100] = {0};
   int dotsLen = 0;
 
   dotsLen = font_size * font_size / 8;
@@ -606,12 +502,12 @@ void Display_1_Chinese(unsigned char x,unsigned char y,unsigned char *str,unsign
  */
 void Display_1_Asc(unsigned char x,unsigned char y, unsigned char str,unsigned char font_size)
 {
-  unsigned char x1,i,j;
+  unsigned char x1,i;
   unsigned char dots[72] = {0};
-  unsigned char chinese[2] = {0};
-  unsigned char fontPath[100] = {0};
+  //unsigned char chinese[2] = {0};
+  char fontPath[100] = {0};
   int dots_len = 0;
-  long filelen;
+  //long filelen;
   unsigned char fontWidth = 0;
 
   FILE *fp;
@@ -674,10 +570,10 @@ void Display_1_Asc(unsigned char x,unsigned char y, unsigned char str,unsigned c
 
 
 
-void Display_Str(unsigned char x,unsigned char y,unsigned char *str,unsigned char font_size)
+void Display_Str(unsigned char x,unsigned char y,char *str,unsigned char font_size)
 {
   unsigned char i,len;
-  unsigned char gb2312[200] = {0};
+  char gb2312[200] = {0};
 
 
   u2g(str,strlen(str),gb2312,200);
@@ -690,27 +586,27 @@ void Display_Str(unsigned char x,unsigned char y,unsigned char *str,unsigned cha
 
     if(gb2312[i] > 0xA0)
     {
-      if(x > (255 - font_size))
+      if(x > (256 - font_size))
       {
         x = 0;
         y += font_size;
       }
-#ifdef DEBUG
-  //    printf("x=%d,y=%d,str=%s\n",x,y,&gb2312[i]);
-#endif
       Display_1_Chinese(x,y,&gb2312[i],font_size);
       i ++;
       x += font_size;
     }else
     {
-      if(x > (255 - font_size / 2))
-      {
+      if(x > (256 - font_size / 2)){
         x = 0;
         y += font_size;
       }
-#ifdef DEBUG
- //     printf("x=%d,y=%d,str=%s\n",x,y,&gb2312[i]);
-#endif
+
+      if(gb2312[i] == '\n'){
+        x = 0;
+        y += font_size;
+        continue;
+      }
+
       Display_1_Asc(x,y,gb2312[i],font_size);
       x += font_size / 2;
     }
@@ -720,7 +616,7 @@ void Display_Str(unsigned char x,unsigned char y,unsigned char *str,unsigned cha
   }
 }
 
-void Display_Number(unsigned char x,unsigned char y,const unsigned char *str)
+void Display_Number(unsigned char x,unsigned char y,const char *str)
 {
   int i,x1,j;
   int len;
@@ -736,7 +632,7 @@ void Display_Number(unsigned char x,unsigned char y,const unsigned char *str)
 
     for(j=0;j<256;j++){
       if(str[i] == ' '){
-        Con_4_byte2(0x00);
+        Con_4_byte(0x00);
       }
       else{
         Con_4_byte(Nums[(str[i] - 0x30) * 256 + j]);
@@ -749,11 +645,11 @@ void Display_Number(unsigned char x,unsigned char y,const unsigned char *str)
 }
 
 
-void Display_Bmp(unsigned char x,unsigned char y,const unsigned char *str)
+void Display_Bmp(unsigned char x,unsigned char y,const char *str)
 {
-  int i,x1,j;
+  int i,x1;
   int len;
-  unsigned char s[10] = {0};
+  char s[100] = {0};
   x1 = x / 4;
 
   strcpy(s,str);
