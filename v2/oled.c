@@ -97,16 +97,14 @@ void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
     }
        
     //等待数据稳定
-//	nanosleep(&ts, NULL);
   //拉高时钟，让设备接收数据
     OLED_SCLK_Set();
 
     //等待设备接收数据
-//	nanosleep(&ts, NULL);
-dat<<=1;   
+   dat<<=1;   
   }
- OLED_SCLK_Set();
- OLED_DC_Set();  
+// OLED_SCLK_Set();
+// OLED_DC_Set();  
 }
 
 
@@ -292,108 +290,6 @@ void OLED_INIT(void)
 
     
  
-}
-
-
-//==============================================================
-//功能描述：写入一组标准ASCII字符串	 20x40	 256*64 只能显示一行
-//参数：显示的位置（x,y），ch[]要显示的字符串
-//返回：无
-//==============================================================  
-void Asc20_40(unsigned char x,unsigned char y,unsigned char ch[])
-{
-  unsigned char x1,c=0, i=0,j=0;      
-  while (ch[i]!='\0')
-  {    
-    x1=x/4;
-	c =ch[i]-32;
-   /* if(x1>10)
-	   {x=0;
-	   x1=x/4;
-	    }  //只能显示一行		*/														
-    Set_Column_Address(Shift+x1,Shift+x1+5); // 设置列坐标，shift为列偏移量由1322决定 
-	Set_Row_Address(y,y+39); 
-	Set_Write_RAM();	 //	写显存    
-  	
-		for(j=0;j<120;j++)
-	 		  {
-				// Con_4_byte(ASC20X40[c*120+j]);	//数据转换
-			   }
-	 i++;
-	 x=x+20;//字间距，20为最小	
-  }
-}
-
-
-void Asc24_48(unsigned char x,unsigned char y,unsigned char ch[])
-{
-  unsigned char x1,c=0, i=0,j=0;      
-  while (ch[i]!='\0')
-  {    
-    x1=x/4;
-  c =ch[i]-32;
-   /* if(x1>10)
-     {x=0;
-     x1=x/4;
-      }  //只能显示一行   */                            
-    Set_Column_Address(Shift+x1,Shift+x1+5); // 设置列坐标，shift为列偏移量由1322决定 
-  Set_Row_Address(y,y+47); 
-  Set_Write_RAM();   // 写显存    
-    
-    for(j=0;j<144;j++)
-        {
-         //Con_4_byte(ASC24X48[c*144+j]); //数据转换
-         }
-   i++;
-   x=x+24;//字间距，20为最小 
-  }
-}
-
-/***************************************************************
-//  显示16*16点阵汉字 2015-05晶奥测试通过
-//  取模方式为：横向取模左高位,数据排列:从左到右从上到下    16列 16行 
-//   num：汉字在字库中的位置
-//   x: Start Column  开始列 范围 0~（256-16）
-//   y: Start Row   开始行 0~63 
-***************************************************************/
-void HZ24_24( unsigned char x, unsigned char y, char *str)
-{
-  unsigned char x1,i ;
-  unsigned char dots[72];
-  char buf[2] = {0};
-  FILE* hzk;
-
-  x1=x/4; 
-  Set_Column_Address(Shift+x1,Shift+x1+5); // 设置列坐标，shift为列偏移量由1322决定。3为24/4-1
-  Set_Row_Address(y,y+23); 
-  Set_Write_RAM();   // 写显存
-  
-  /* 打开汉字库hzk16，并从中提取“宋”字的点阵数据 */
-    if((hzk = fopen("/home/pi/hzk24h", "rb")) == NULL)
-    {
-      printf("%s\n","没有文件");
-        return ;
-    }
-
-    u2g(str,strlen(str),buf,2);
-
-    fseek(hzk, HZ_INDEX(buf) * 72, SEEK_SET);
-    fread(dots, sizeof(unsigned char), 72, hzk);
-    fclose(hzk);
-
-
-  for (i=23;i>0;i--)
-    {
-        Con_4_byte(dots[i*3+0]);
-        Con_4_byte(dots[i*3+1]);
-        Con_4_byte(dots[i*3+2]);
-    }
-    
-    // for (i=0;i<72;i++)
-    // {
-    //   Con_4_byte(dots[i]);
-    //   printf("%02x,",dots[i]);
-    // }   
 }
 
 
