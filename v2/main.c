@@ -133,9 +133,9 @@ void ShowOled(void)
         //检查是否停车状态,如果为停车状态则启动定时器
         if(curSpeed == 0){
             struct itimerval tick;
-            memset(&tick, 0, sizeof(tick));
             getitimer(ITIMER_REAL,&tick);
             if(tick.it_value.tv_sec == 0){
+                printf("进入定时器\n");
                 SetTimer(6);
             }
         }

@@ -14,11 +14,6 @@
 #define DOTS_BYTES(font) (FONT_WIDTH[font] * FONT_HEIGHT[font] / 8)
 #define HZ_INDEX(hz)    ((hz[0] - 0xa1) * 94 + (hz[1] - 0xa1))
 
-//static int FONT_WIDTH[6]={16,24,24,6,8,12};
-//static int FONT_HEIGHT[6]={16,24,24,12,16,24};
-
-//unsigned char *DOTS[6];
-
 
 
 
@@ -60,13 +55,7 @@ int u2g(char *inbuf, size_t inlen, char *outbuf, size_t outlen) {
 }  
   
 
-/** 转换gb2312 到 utf-8
- * @param
- * @param
- * @param
- * @param
- * @return
- */
+/** 转换gb2312 到 utf-8 */
 int g2u(char *inbuf, size_t inlen, char *outbuf, size_t outlen) {  
     return code_convert("gb2312", "utf-8", inbuf, inlen, outbuf, outlen);  
 } 
@@ -75,9 +64,6 @@ int g2u(char *inbuf, size_t inlen, char *outbuf, size_t outlen) {
 void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
 { 
   unsigned char i;   
-  struct timespec ts;
-  ts.tv_sec = 0;
-  ts.tv_nsec = 1;
   if(cmd)
     OLED_DC_Set();
   else 
@@ -93,7 +79,7 @@ void OLED_WR_Byte(uint8_t dat,uint8_t cmd)
        
     //等待数据稳定
     //拉高时钟，让设备接收数据
-    //nanosleep(1);
+    nanosleep(1);
     OLED_SCLK_Set();
 
     //等待设备接收数据

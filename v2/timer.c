@@ -18,8 +18,12 @@ int main()
     int res = 0;
     struct itimerval tick;
     
-    signal(SIGALRM, printMes);
     memset(&tick, 0, sizeof(tick));
+    printf("%d\n",getitimer(ITIMER_REAL,&tick));
+
+    signal(SIGALRM, printMes);
+    
+
 
     //Timeout to run first time
     tick.it_value.tv_sec = 5;
