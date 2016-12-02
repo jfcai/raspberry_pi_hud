@@ -20,7 +20,6 @@
 //unsigned char *DOTS[6];
 
 
-void OLED_INIT(void);
 
 
 /**
@@ -146,7 +145,6 @@ unsigned char i,j;
             OLED_WR_Byte(Data,OLED_DATA); 
         }
     }
-   OLED_INIT();
 }
 
 

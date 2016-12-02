@@ -134,16 +134,6 @@ int main(int argc, char **argv)
     printf("初始化OLED屏...\n");
     OLED_INIT();
 	Fill_RAM(0x00);
-    Display_Str(0,0,"正在启动...",24);
-    sleep(2);
-	char str[100] = {0};
-	int i;
-	for(i=0;i<10;i++){
-	  sprintf(str,"正在测试(%3d)...",i);
-	  Display_Str(0,0,str,24);
-	  bcm2835_delay(50);
-	}
-	Fill_RAM(0x00);
 
     
 	//创建读Can 车速信息进程
